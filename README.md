@@ -34,3 +34,14 @@ WeChat miniprogram helper
     add [options] [component-name]  page that is going to register component
     rm [options] [component-name]   remove component from page
 ```
+
+## Config
+
+```javascript
+  // wxApp/anka.config.json
+
+  {
+      "components": "./components",
+      "pages": "./pages"
+  }
+```
