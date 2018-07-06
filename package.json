@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/joe223/anka.git"
+    "url": "https://github.com/joe223/anka/"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/joe223/anka/issues"
   },
-  "homepage": "https://github.com/joe223/anka#readme",
+  "homepage": "https://github.com/joe223/anka",
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.15.1",
