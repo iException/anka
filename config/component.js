@@ -1,10 +1,10 @@
 module.exports = {
-    js: `Component({
-        properties: {},
-    })`,
-    json: `{
-        "component": true
-    }`,
-    wxml: ``,
-    wxss: ``,
+js: `Component({
+    properties: {},
+})`,
+json: `{
+    "component": true
+}`,
+wxml: ``,
+wxss: ``,
 }
