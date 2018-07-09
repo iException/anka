@@ -17,7 +17,7 @@ module.exports = function (component, options) {
         const pageJson = JSON.parse(fs.readFileSync(pageJsonPath, {
             encoding: 'utf-8'
         }))
-        const relativePath = path.relative(pagePath, componentPath)
+        const relativePath = path.relative(pagePath, path.join(componentPath, component))
         if (pageJson['usingComponents'][component]) {
             throw new Error(`component ${component} is registered!`)
         }
