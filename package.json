@@ -1,6 +1,6 @@
 {
   "name": "anka",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "WeChat miniprogram helper",
   "main": "index.js",
   "bin": {
