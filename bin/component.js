@@ -16,14 +16,14 @@ function generateComponent (targetPath) {
     const wxssFilePath = path.join(dir, `${name}.wxss`)
 
     new Promise((resolve, reject) => {
-        if (!fs.existsSync(dir)) {
+        if (!fs.existsSync(jsonFilePath)) {
             fs.ensureDir(dir).then(res => {
                 resolve()
             }).catch(err => {
                 reject(err)
             })
         } else {
-            reject(new Error(`组件 ${name} 已经存在`))
+            reject(new Error(`组件 ${jsonFilePath} 已经存在`))
         }
     }).then(() => {
         return Promise.all([
@@ -33,8 +33,9 @@ function generateComponent (targetPath) {
             fs.outputFile(wxssFilePath, CONTENT.wxss)
         ])
     }).then(res => {
-        log.success(`组件 ${name} 创建成功, path:\r\n\t${dir}/`)
+        log.success(`组件 ${targetPath} 创建成功 \r\n\tpath: ${jsonFilePath}`)
     }).catch(err => {
+        log.error(err.message)
         console.log(err)
     })
 }
