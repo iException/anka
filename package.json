@@ -25,6 +25,7 @@
     "download-git-repo": "^1.0.2",
     "figlet": "^1.2.0",
     "fs-extra": "^6.0.1",
-    "inquirer": "^5.2.0"
+    "inquirer": "^5.2.0",
+    "npm": "^6.3.0"
   }
 }
