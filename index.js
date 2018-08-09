@@ -7,8 +7,7 @@ const generatePage = require('./bin/page')
 const generateComponent = require('./bin/component')
 const addComponent = require('./bin/addComponent')
 const removeComponent = require('./bin/removeComponent')
-const installPackages = require('./bin/lib/installPackages')
-const uninstallPackages = require('./bin/lib/uninstallPackages')
+const { installPackages, uninstallPackages } = require('./bin/lib/Installer')
 
 commander
     .version(package.version, '-v, --version')
