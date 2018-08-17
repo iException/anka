@@ -7,6 +7,7 @@ const generatePage = require('./bin/page')
 const generateComponent = require('./bin/component')
 const addComponent = require('./bin/addComponent')
 const removeComponent = require('./bin/removeComponent')
+const { installPackages, uninstallPackages } = require('./bin/lib/Installer')
 
 commander
     .version(package.version, '-v, --version')
@@ -35,5 +36,15 @@ commander
     .option('s-, --scope [page-name]', 'Which page')
     .description('remove component from page')
     .action(removeComponent)
+
+commander
+    .command('install <package> [otherPackages...]')
+    .description('install package')
+    .action(installPackages)
+
+commander
+    .command('uninstall <package> [otherPackages...]')
+    .description('uninstall package')
+    .action(uninstallPackages)
 
 commander.parse(process.argv)
