@@ -1,6 +1,10 @@
 const npm = require('npm');
 const fs = require('fs')
+const ncp = require('ncp').ncp
+
+const LIB_CONFIG = '/lib.config.json'
 const ANKA_CONFIG = '/anka.config.json'
+const COMPONENT_DIR = '/miniprogram_dist'
 
 class _Installer {
 
@@ -9,11 +13,17 @@ class _Installer {
 	}
 
 	init() {
+		this.config = JSON.parse(fs.readFileSync(__dirname + LIB_CONFIG, 'utf8'));
+		let ankaModulesDir = `${process.cwd()}` + this.config.installPath;
+		if (!fs.existsSync(ankaModulesDir)){
+		    fs.mkdirSync(ankaModulesDir);
+		}
+
 		return new Promise(resolve => {
 			npm.load(error => {
 				error ? process.exit(1) : resolve()
 			}) 
-		})
+		});
 	}
 
 	async install() {
@@ -36,31 +46,46 @@ class _Installer {
 
 	inject(paths) {
 		Promise.all(paths.map(item => {
-			let path = item[1] + ANKA_CONFIG
-			if (fs.existsSync(path)) {
-				let obj = JSON.parse(fs.readFileSync(path, 'utf8'))
-				console.log(obj)
+
+			let packagePaths = item[1].split('/');
+			let configPath = item[1] + ANKA_CONFIG;
+			let componentPath = item[1] + COMPONENT_DIR;
+
+			if (fs.existsSync(configPath)) {
+				let obj = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+				if (obj.type === 'component') {
+					let destination = `${process.cwd()}` + this.config.installPath + packagePaths[packagePaths.length - 1];
+					if (!fs.existsSync(destination)){
+					    fs.mkdirSync(destination);
+					}
+					ncp(componentPath, destination, function (err) {
+						if (err) {
+							return console.error(err);
+						}
+						console.log('done!');
+					});
+				}
 			}
 		})) 
 	}
 }
 
 async function installPackages(package, otherPackages) {
-	let installer = new _Installer([package, ...otherPackages])
+	let installer = new _Installer([package, ...otherPackages]);
 	try {
-		let result = await installer.install()
-		installer.inject(result)
+		let result = await installer.install();
+		installer.inject(result);
 	} catch (err) {
 		console.log('error' + err)
 	}
 }
 
 async function uninstallPackages(package, otherPackages) {
-	let installer = new _Installer([package, ...otherPackages])
+	let installer = new _Installer([package, ...otherPackages]);
 	try {
-		let result = await installer.uninstall()
+		let result = await installer.uninstall();
 	} catch (err) {
-		console.log('error' + err)
+		console.log('error' + err);
 	}
 }
 
