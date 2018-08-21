@@ -6,14 +6,14 @@ module.exports = {
     },
 
     error (msg) {
-        console.log(chalk.red(`[Error]`), chalk.reset(msg))
+        console.log(chalk.red('[Error]'), chalk.reset(msg))
     },
 
     info (msg) {
-        console.log(chalk.cyan(`[Info]`), chalk.reset(msg))
+        console.log(chalk.cyan('[Info]'), chalk.reset(msg))
     },
 
     success (msg) {
-        console.log(chalk.green(`[Success]`), chalk.reset(msg))
+        console.log(chalk.green('[Success]'), chalk.reset(msg))
     }
 }
