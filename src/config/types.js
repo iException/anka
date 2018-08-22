@@ -9,5 +9,6 @@ export const ACTIONS = {
     COMPILE: '编译',
     WATCH: '监听',
     REMOVE: '移除',
-    READY: '就绪'
+    READY: '就绪',
+    COPY: '拷贝'
 }

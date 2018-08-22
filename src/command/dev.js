@@ -3,6 +3,7 @@ import log from '../util/log'
 import File from '../class/File'
 import * as editor from '../util/fileEditor'
 import ScriptFile from '../class/ScriptFile'
+import StyleFile from '../class/StyleFile'
 // import TplFile from '../class/TplFile'
 import genDependenceData from '../util/genDependenceData'
 import { localFilesCache, npmFilesCache } from '../util/cache'
@@ -10,16 +11,18 @@ import { ACTIONS, FILE_TYPES } from '../config/types'
 import { extractFileConfig } from '../util'
 
 class DevCommand {
-    addFile (filePath) {
+    async addFile (filePath) {
         let file = null
         const fileConfig = extractFileConfig(filePath)
         if (fileConfig.type === FILE_TYPES.SCRIPT) {
             file = new ScriptFile(fileConfig)
+        } else if (fileConfig.type === FILE_TYPES.STYLE) {
+            file = new StyleFile(fileConfig)
         } else {
             file = new File(fileConfig)
         }
         localFilesCache.set(fileConfig.sourcePath, file)
-        file.compile()
+        await file.compile()
 
         // else if (fileConfig.type === FILE_TYPES.TPL) {
         //     this.files[fileConfig.sourcePath] = new TplFile(fileConfig)
@@ -35,12 +38,12 @@ class DevCommand {
         }
     }
 
-    changeFile (filePath) {
+    async changeFile (filePath) {
         const fileConfig = extractFileConfig(filePath)
         const file = localFilesCache.find(fileConfig.sourcePath)
         if (file) {
             file.updateContent()
-            file.compile()
+            await file.compile()
         }
     }
 
@@ -60,6 +63,8 @@ class DevCommand {
         const dir = path.resolve(process.cwd(), './src/')
         const watcher = editor.watch(dir)
 
+        log.success(ACTIONS.READY, dir)
+
         watcher.on('add', this.addFile.bind(this))
         watcher.on('unlink', this.unlinkFile.bind(this))
         watcher.on('change', this.changeFile.bind(this))
@@ -70,7 +75,6 @@ class DevCommand {
             npmFilesCache.list().map(pkg => {
                 pkg.move()
             })
-            log.success(ACTIONS.READY, dir)
         })
     }
 

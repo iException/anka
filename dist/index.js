@@ -14,6 +14,9 @@ var memFsEditor = _interopDefault(require('mem-fs-editor'));
 var babel = _interopDefault(require('babel-core'));
 var traverse = _interopDefault(require('babel-traverse'));
 var fs$1 = _interopDefault(require('fs'));
+var postcss = _interopDefault(require('postcss'));
+var sass = _interopDefault(require('node-sass'));
+var postcssrc = _interopDefault(require('postcss-load-config'));
 var download = _interopDefault(require('download-git-repo'));
 var cfonts = _interopDefault(require('cfonts'));
 var commander = _interopDefault(require('commander'));
@@ -46,8 +49,9 @@ var log = {
         return console.log(this.time(), ...msg);
     },
 
-    error(title = '', msg = '') {
+    error(title = '', msg = '', err) {
         this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg));
+        console.log('\r\n', err);
     },
 
     info(title = '', msg) {
@@ -74,7 +78,17 @@ const ACTIONS = {
     COMPILE: '编译',
     WATCH: '监听',
     REMOVE: '移除',
-    READY: '就绪'
+    READY: '就绪',
+    COPY: '拷贝'
+};
+
+var system = {
+    // 开发模式
+    devMode: true,
+    cwd: process.cwd(),
+    distNodeModules: './dist/npm_modules',
+    sourceNodeModules: './node_modules',
+    scaffold: 'github:iException/mini-program-scaffold'
 };
 
 function copyFile(sourcePath, targetPath) {
@@ -89,20 +103,24 @@ function copyFile(sourcePath, targetPath) {
 function extractFileConfig(filePath) {
     let type = '';
     const ext = path.extname(filePath);
-    const sourcePath = path.resolve(process.cwd(), filePath);
+    const basename = path.basename(filePath);
+    const sourcePath = path.resolve(system.cwd, filePath);
 
     if (/\.js$/.test(ext)) {
         type = FILE_TYPES.SCRIPT;
+    } else if (/\.(wxml|html|xml)$/.test(ext)) {
+        type = FILE_TYPES.TPL;
+    } else if (/\.(wxss|scss|sass|less|css)$/.test(ext)) {
+        type = FILE_TYPES.STYLE;
+    } else if (/\.json/.test(ext)) {
+        type = FILE_TYPES.JSON;
     }
 
-    // else if (/.wxml$/.test(ext)) {
-    //     type = FILE_TYPES.TPL
-    // }
-
     const fileConfig = {
-        ext,
         type,
-        sourcePath
+        sourcePath,
+        ext: ext.replace(/^\./, ''),
+        name: basename.replace(ext, '')
     };
     return fileConfig;
 }
@@ -113,12 +131,17 @@ function saveFile(targetPath, content) {
 }
 
 class File {
-    constructor({ sourcePath = '', ext = '', type = '' }) {
+    constructor({ sourcePath, ext, type, name }) {
         this.ext = ext;
         this.type = type;
+        this.originalContent = '';
+        this.compiledContent = '';
         this.sourcePath = sourcePath;
         this.targetPath = sourcePath.replace(path.resolve(process.cwd(), 'src'), path.resolve(process.cwd(), 'dist'));
         this.targetDir = path.dirname(this.targetPath);
+        if (type === FILE_TYPES.STYLE) {
+            this.targetPath = path.join(this.targetDir, `${name}.wxss`);
+        }
     }
 
     unlinkFromDist() {
@@ -127,19 +150,23 @@ class File {
     }
 
     updateContent() {
-        this.$content = fs.readFileSync(this.sourcePath);
+        this.originalContent = fs.readFileSync(this.sourcePath);
     }
 
     save() {
-        if (!this.sourcePath || !this.content || !this.targetPath) return;
-        saveFile(this.targetPath, this.content);
+        if (!this.sourcePath || !this.compiledContent || !this.targetPath) return;
+        saveFile(this.targetPath, this.compiledContent);
     }
 
     /**
      * 未知类型文件直接使用拷贝
      */
     compile() {
-        log.info('拷贝', this.sourcePath);
+        log.info(ACTIONS.COPY, this.sourcePath);
+        this.copy();
+    }
+
+    copy() {
         copyFile(this.sourcePath, this.targetPath);
     }
 }
@@ -192,11 +219,8 @@ function watch(dir, options = {}) {
 const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
 const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
 const ankaConfig = {
-    scaffold: 'github:iException/mini-program-scaffold',
     pages: './src/pages',
-    components: './src/components',
-    distNodeModules: './dist/npm_modules',
-    sourceNodeModules: './node_modules'
+    components: './src/components'
 };
 
 if (fs.existsSync(ankaJsConfigPath)) {
@@ -205,15 +229,15 @@ if (fs.existsSync(ankaJsConfigPath)) {
     Object.assign(ankaConfig, require(ankaJsonConfigPath));
 }
 
-const cwd = process.cwd();
+const cwd = system.cwd;
 
 class NpmDependence {
     constructor(dependence) {
         // 该 npm 包的内部所有依赖文件
         this.localDependencies = {};
         this.name = dependence;
-        this.sourcePath = path.resolve(cwd, ankaConfig.sourceNodeModules, dependence);
-        this.targetPath = path.resolve(cwd, ankaConfig.distNodeModules, dependence);
+        this.sourcePath = path.resolve(cwd, system.sourceNodeModules, dependence);
+        this.targetPath = path.resolve(cwd, system.distNodeModules, dependence);
         this.pkgInfo = Object.assign({
             main: 'index.js'
         }, require(path.join(this.sourcePath, './package.json')));
@@ -240,6 +264,7 @@ class NpmDependence {
                         this.extractLocalDependencies(this.resolveModule(dependence, filePath));
                     } else {
                         const data = new NpmDependence(dependence);
+
                         node.source.value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main);
                     }
                 } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
@@ -248,6 +273,7 @@ class NpmDependence {
                         this.extractLocalDependencies(this.resolveModule(dependence, filePath));
                     } else {
                         const data = new NpmDependence(dependence);
+
                         node.arguments[0].value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main);
                     }
                 }
@@ -261,7 +287,7 @@ class NpmDependence {
     }
 
     /**
-     * 将该 npm 模块从 node_modules 移到 ankaConfig.distNodeModules
+     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
      */
     move() {
         this.extractLocalDependencies(this.resolveModule(this.name));
@@ -319,18 +345,13 @@ const localFilesCache = new Cache();
 const npmFilesCache = new Cache();
 
 class ScriptFile extends File {
-    constructor(fileConfig) {
-        super(fileConfig);
-        this.updateContent();
-    }
-
     /**
      * 将 node_modules 中存在的包加入依赖
      * @param {*} dependence
      */
     isThirdPartyModule(dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
-            const dependencePath = path.resolve(process.cwd(), ankaConfig.sourceNodeModules, dependence);
+            const dependencePath = path.resolve(process.cwd(), system.sourceNodeModules, dependence);
             if (fs$1.existsSync(dependencePath)) {
                 return true;
             }
@@ -338,8 +359,8 @@ class ScriptFile extends File {
     }
 
     compile() {
-        log.info(ACTIONS.COMPILE, this.sourcePath);
-        const { ast } = babel.transform(this.$content, {
+        this.updateContent();
+        const { ast } = babel.transform(this.originalContent, {
             ast: true,
             babelrc: false
         });
@@ -366,28 +387,96 @@ class ScriptFile extends File {
             }
         });
 
-        const { code } = babel.transformFromAst(ast);
         this.$ast = ast;
-        this.$content = code;
+        this.compiledContent = babel.transformFromAst(ast).code;
         this.save();
+        log.info(ACTIONS.COMPILE, this.sourcePath);
+    }
+}
+
+var postcssWxImport = postcss.plugin('postcss-wximport', () => {
+    return root => {
+        root.walkAtRules('wximport', rule => {
+            rule.name = 'import';
+            rule.params = rule.params.replace(/\.\w+(?=['"]$)/, '.wxss');
+        });
+    };
+});
+
+const postcssConfig = {};
+
+var loader = {
+    sass({ file, content }) {
+        return sass.renderSync({
+            file,
+            data: content,
+            outputStyle: 'nested'
+        }).css;
+    },
+
+    scss(content) {
+        return this.sass(content);
+    },
+
+    async css({ file, content }) {
+        const config = await genPostcssConfig();
+        const root = await postcss(config.plugins.concat([postcssWxImport])).process(content, _extends({}, config.options, {
+            from: file
+        }));
+        fs.writeFileSync(system.cwd + '/postcss-ast.json', JSON.stringify(root, null, 4), 'utf-8');
+        return root.css;
     }
 
-    get content() {
-        return this.$content;
+    // less (content) {
+    //     return content
+    // },
+    //
+    // wxss (content) {
+    //     return content
+    // }
+};
+
+function genPostcssConfig() {
+    return postcssConfig.plugins ? Promise.resolve(postcssConfig) : postcssrc({}).then(config => {
+        return Promise.resolve(Object.assign(postcssConfig, config));
+    });
+}
+
+class StyleFile extends File {
+    async compile() {
+        this.updateContent();
+        const parser = loader[this.ext];
+        if (parser) {
+            try {
+                this.compiledContent = await loader[this.ext]({
+                    file: this.sourcePath,
+                    content: this.originalContent.toString('utf8')
+                });
+            } catch (err) {
+                log.error(ACTIONS.COMPILE, this.sourcePath, err.formatted || err);
+            }
+            this.save();
+            log.info(ACTIONS.COMPILE, this.sourcePath);
+        } else {
+            this.copy();
+            log.info(ACTIONS.COPY, this.sourcePath);
+        }
     }
 }
 
 class DevCommand {
-    addFile(filePath) {
+    async addFile(filePath) {
         let file = null;
         const fileConfig = extractFileConfig(filePath);
         if (fileConfig.type === FILE_TYPES.SCRIPT) {
             file = new ScriptFile(fileConfig);
+        } else if (fileConfig.type === FILE_TYPES.STYLE) {
+            file = new StyleFile(fileConfig);
         } else {
             file = new File(fileConfig);
         }
         localFilesCache.set(fileConfig.sourcePath, file);
-        file.compile();
+        await file.compile();
 
         // else if (fileConfig.type === FILE_TYPES.TPL) {
         //     this.files[fileConfig.sourcePath] = new TplFile(fileConfig)
@@ -403,12 +492,12 @@ class DevCommand {
         }
     }
 
-    changeFile(filePath) {
+    async changeFile(filePath) {
         const fileConfig = extractFileConfig(filePath);
         const file = localFilesCache.find(fileConfig.sourcePath);
         if (file) {
             file.updateContent();
-            file.compile();
+            await file.compile();
         }
     }
 
@@ -428,6 +517,8 @@ class DevCommand {
         const dir = path.resolve(process.cwd(), './src/');
         const watcher = watch(dir);
 
+        log.success(ACTIONS.READY, dir);
+
         watcher.on('add', this.addFile.bind(this));
         watcher.on('unlink', this.unlinkFile.bind(this));
         watcher.on('change', this.changeFile.bind(this));
@@ -438,7 +529,6 @@ class DevCommand {
             npmFilesCache.list().map(pkg => {
                 pkg.move();
             });
-            log.success(ACTIONS.READY, dir);
         });
     }
 
@@ -713,6 +803,7 @@ var bugs = {
 };
 var homepage = "https://github.com/joe223/anka";
 var dependencies = {
+	"await-to-js": "^2.0.1",
 	"babel-core": "^6.26.3",
 	cfonts: "^2.1.3",
 	chalk: "^2.4.1",
@@ -724,7 +815,10 @@ var dependencies = {
 	inquirer: "^5.2.0",
 	"mem-fs": "^1.1.3",
 	"mem-fs-editor": "^5.1.0",
-	ora: "^3.0.0"
+	"node-sass": "^4.9.3",
+	ora: "^3.0.0",
+	postcss: "^7.0.2",
+	"postcss-load-config": "^2.0.0"
 };
 var devDependencies = {
 	"babel-plugin-external-helpers": "^6.22.0",

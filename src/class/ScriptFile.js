@@ -3,25 +3,20 @@ import path from 'path'
 import File from './File'
 import log from '../util/log'
 import babel from 'babel-core'
+import system from '../config'
 import traverse from 'babel-traverse'
 import { ACTIONS } from '../config/types'
-import ankaConfig from '../config/ankaConfig'
 import genDependenceData from '../util/genDependenceData'
 import { npmFilesCache, localFilesCache } from '../util/cache'
 
 export default class ScriptFile extends File {
-    constructor (fileConfig) {
-        super(fileConfig)
-        this.updateContent()
-    }
-
     /**
      * 将 node_modules 中存在的包加入依赖
      * @param {*} dependence
      */
     isThirdPartyModule (dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
-            const dependencePath = path.resolve(process.cwd(), ankaConfig.sourceNodeModules, dependence)
+            const dependencePath = path.resolve(process.cwd(), system.sourceNodeModules, dependence)
             if (fs.existsSync(dependencePath)) {
                 return true
             }
@@ -29,8 +24,8 @@ export default class ScriptFile extends File {
     }
 
     compile () {
-        log.info(ACTIONS.COMPILE, this.sourcePath)
-        const { ast } = babel.transform(this.$content, {
+        this.updateContent()
+        const { ast } = babel.transform(this.originalContent, {
             ast: true,
             babelrc: false
         })
@@ -57,13 +52,9 @@ export default class ScriptFile extends File {
             }
         })
 
-        const { code } = babel.transformFromAst(ast)
         this.$ast = ast
-        this.$content = code
+        this.compiledContent = babel.transformFromAst(ast).code
         this.save()
-    }
-
-    get content () {
-        return this.$content
+        log.info(ACTIONS.COMPILE, this.sourcePath)
     }
 }

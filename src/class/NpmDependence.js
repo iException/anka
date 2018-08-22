@@ -1,20 +1,20 @@
 import path from 'path'
 import fs from 'fs-extra'
 import babel from 'babel-core'
+import system from '../config'
 import traverse from 'babel-traverse'
-import * as editor from '../util/fileEditor'
 import ankaConfig from '../config/ankaConfig'
-import {copyFile, extractFileConfig, saveFile} from '../util'
+import { copyFile, extractFileConfig, saveFile } from '../util'
 
-const cwd = process.cwd()
+const cwd = system.cwd
 
 export class NpmDependence {
     constructor (dependence) {
         // 该 npm 包的内部所有依赖文件
         this.localDependencies = {}
         this.name = dependence
-        this.sourcePath = path.resolve(cwd, ankaConfig.sourceNodeModules, dependence)
-        this.targetPath = path.resolve(cwd, ankaConfig.distNodeModules, dependence)
+        this.sourcePath = path.resolve(cwd, system.sourceNodeModules, dependence)
+        this.targetPath = path.resolve(cwd, system.distNodeModules, dependence)
         this.pkgInfo = Object.assign({
             main: 'index.js'
         }, require(path.join(this.sourcePath, './package.json')))
@@ -41,6 +41,7 @@ export class NpmDependence {
                         this.extractLocalDependencies(this.resolveModule(dependence, filePath))
                     } else {
                         const data = new NpmDependence(dependence)
+
                         node.source.value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main)
                     }
                 } else if (astNode.isCallExpression() &&
@@ -53,6 +54,7 @@ export class NpmDependence {
                         this.extractLocalDependencies(this.resolveModule(dependence, filePath))
                     } else {
                         const data = new NpmDependence(dependence)
+
                         node.arguments[0].value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main)
                     }
                 }
@@ -66,7 +68,7 @@ export class NpmDependence {
     }
 
     /**
-     * 将该 npm 模块从 node_modules 移到 ankaConfig.distNodeModules
+     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
      */
     move () {
         this.extractLocalDependencies(this.resolveModule(this.name))
