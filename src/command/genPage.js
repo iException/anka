@@ -46,8 +46,8 @@ async function genPage (targetPage, options) {
 
     await fileEditor.save()
 
-    log.success('页面创建成功', absolutePath)
-    log.success('页面注册成功', absolutePath)
+    log.success('创建页面', absolutePath)
+    log.success('注册页面', absolutePath)
 }
 
 export default {

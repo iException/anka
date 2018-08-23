@@ -5,56 +5,78 @@ import log from '../util/log'
 import babel from 'babel-core'
 import system from '../config'
 import traverse from 'babel-traverse'
-import { ACTIONS } from '../config/types'
+import {ACTIONS, FILE_TYPES} from '../config/types'
 import genDependenceData from '../util/genDependenceData'
-import { npmFilesCache, localFilesCache } from '../util/cache'
+import { npmDependenceCache, localDependenceCache } from '../util/cache'
+import {NpmDependence} from './NpmDependence'
 
 export default class ScriptFile extends File {
-    /**
-     * 将 node_modules 中存在的包加入依赖
-     * @param {*} dependence
-     */
-    isThirdPartyModule (dependence) {
-        if (/^(@|[A-Za-z0-1])/.test(dependence)) {
-            const dependencePath = path.resolve(process.cwd(), system.sourceNodeModules, dependence)
-            if (fs.existsSync(dependencePath)) {
-                return true
-            }
-        }
+    constructor (fileConfig) {
+        super(fileConfig)
+        this.type = FILE_TYPES.SCRIPT
+        this.localDependencies = {}
+        this.npmDependencies = {}
     }
 
     compile () {
+        this.traverse()
+        this.compiledContent = babel.transformFromAst(this.$ast).code
+        this.updateNpmDependenceCache()
+        this.save()
+        log.info(ACTIONS.COMPILE, this.src)
+    }
+
+    traverse () {
         this.updateContent()
-        const { ast } = babel.transform(this.originalContent, {
+        this.$ast = babel.transform(this.originalContent, {
             ast: true,
             babelrc: false
-        })
-        const _this = this
+        }).ast
 
-        traverse(ast, {
-            enter (astNode) {
+        traverse(this.$ast, {
+            enter: astNode => {
                 const node = astNode.node
                 if (astNode.isImportDeclaration()) {
                     const dependence = node.source.value
-                    if (_this.isThirdPartyModule(dependence)) {
-                        const data = genDependenceData(dependence)
-                        npmFilesCache.set(dependence, data)
-                        node.source.value = path.join(path.relative(_this.targetDir, data.targetPath), data.pkgInfo.main)
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence)
+                        node.source.value = this.resolveNpmDependence(npmDependence)
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence)
                     }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
+                } else if (
+                    astNode.isCallExpression() &&
+                    node.callee.name === 'require' &&
+                    node.arguments[0] &&
+                    node.arguments[0].value
+                ) {
                     const dependence = node.arguments[0].value
-                    if (_this.isThirdPartyModule(dependence)) {
-                        const data = genDependenceData(dependence)
-                        npmFilesCache.set(dependence, data)
-                        node.arguments[0].value = path.join(path.relative(_this.targetDir, data.targetPath), data.pkgInfo.main)
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence)
+                        node.arguments[0].value = this.resolveNpmDependence(npmDependence)
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence)
                     }
                 }
             }
         })
+    }
 
-        this.$ast = ast
-        this.compiledContent = babel.transformFromAst(ast).code
-        this.save()
-        log.info(ACTIONS.COMPILE, this.sourcePath)
+    resolveNpmDependence (npmDependence) {
+        this.npmDependencies[npmDependence.name] = npmDependence
+        return path.join(path.relative(this.distDir, npmDependence.dist), npmDependence.pkgInfo.main)
+    }
+
+    resolveLocalDependence (localDependence) {
+        this.localDependencies[localDependence.dist] = localDependence
+    }
+
+    updateNpmDependenceCache () {
+        Object.values(this.npmDependencies).forEach(npmDependence => {
+            if (!npmDependenceCache.find(npmDependence.name)) {
+                npmDependenceCache.set(npmDependence.name, npmDependence)
+                npmDependence.compile()
+            }
+        })
     }
 }

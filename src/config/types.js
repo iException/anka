@@ -2,7 +2,8 @@ export const FILE_TYPES = {
     STYLE: 'style',
     SCRIPT: 'script',
     TPL: 'tpl',
-    JSON: 'json'
+    JSON: 'json',
+    UNKNOWN: 'unknown'
 }
 
 export const ACTIONS = {

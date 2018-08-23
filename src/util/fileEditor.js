@@ -32,9 +32,9 @@ export function save () {
     })
 }
 
-export function search (scheme) {
+export function search (scheme, options = {}) {
     return new Promise((resolve, reject) => {
-        glob(scheme, (err, files) => {
+        glob(scheme, options, (err, files) => {
             if (err) {
                 reject(err)
             } else {
@@ -47,6 +47,7 @@ export function search (scheme) {
 export function watch (dir, options = {}) {
     return chokidar.watch(dir, {
         persistent: true,
+        ignoreInitial: true,
         ...options
     })
 }

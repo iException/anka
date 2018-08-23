@@ -7,7 +7,7 @@ import * as editor from '../util/fileEditor'
 import LocalDependence from '../class/LocalDependence'
 import { localDependenceCache } from '../util/cache'
 
-class DevCommand {
+class BuildCommand {
     addDependence (filePath) {
         const localDependence = new LocalDependence(filePath)
         if (!localDependenceCache.find(localDependence.src)) {
@@ -43,13 +43,7 @@ class DevCommand {
             localDependenceCache.set(localDependence.src, localDependence)
         })
 
-        const list = localDependenceCache.list()
-
-        for (let index = 0; index < list.length; index++) {
-            await list[index].compile()
-        }
-
-        this.watch()
+        localDependenceCache.list().forEach(localDependence => localDependence.compile())
     }
 
     clean () {
@@ -68,12 +62,12 @@ class DevCommand {
 }
 
 export default {
-    command: 'dev',
+    command: 'build',
     alias: '',
     usage: '[projectName]',
-    description: '开发模式',
+    description: '构建模式',
     async action (...args) {
-        const cmd = new DevCommand()
+        const cmd = new BuildCommand()
         await cmd.run(...args)
     }
 }

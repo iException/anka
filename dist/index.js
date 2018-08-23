@@ -7,13 +7,13 @@ var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
 var path = _interopDefault(require('path'));
 var fs = _interopDefault(require('fs-extra'));
-require('glob');
+var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
 var chokidar = _interopDefault(require('chokidar'));
 var memFsEditor = _interopDefault(require('mem-fs-editor'));
 var babel = _interopDefault(require('babel-core'));
 var traverse = _interopDefault(require('babel-traverse'));
-var fs$1 = _interopDefault(require('fs'));
+require('fs');
 var postcss = _interopDefault(require('postcss'));
 var sass = _interopDefault(require('node-sass'));
 var postcssrc = _interopDefault(require('postcss-load-config'));
@@ -55,7 +55,7 @@ var log = {
     },
 
     info(title = '', msg) {
-        this.log(chalk.grey('○'), chalk.reset(title), chalk.grey(msg));
+        this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg));
     },
 
     warn(title = '', msg = '') {
@@ -67,11 +67,25 @@ var log = {
     }
 };
 
+const cwd = process.cwd();
+
+var system = {
+    // 开发模式
+    cwd,
+    devMode: true,
+    srcDir: path.resolve(cwd, 'src'),
+    distDir: path.resolve(cwd, 'dist'),
+    distNodeModules: './dist/npm_modules',
+    sourceNodeModules: './node_modules',
+    scaffold: 'github:iException/mini-program-scaffold'
+};
+
 const FILE_TYPES = {
     STYLE: 'style',
     SCRIPT: 'script',
     TPL: 'tpl',
-    JSON: 'json'
+    JSON: 'json',
+    UNKNOWN: 'unknown'
 };
 
 const ACTIONS = {
@@ -82,29 +96,20 @@ const ACTIONS = {
     COPY: '拷贝'
 };
 
-var system = {
-    // 开发模式
-    devMode: true,
-    cwd: process.cwd(),
-    distNodeModules: './dist/npm_modules',
-    sourceNodeModules: './node_modules',
-    scaffold: 'github:iException/mini-program-scaffold'
-};
-
-function copyFile(sourcePath, targetPath) {
-    if (path.parse(targetPath).ext) {
-        fs.ensureFileSync(targetPath);
+function copyFile(src, dist) {
+    if (path.parse(dist).ext) {
+        fs.ensureFileSync(dist);
     } else {
-        fs.ensureDirSync(path.dirname(targetPath));
+        fs.ensureDirSync(path.dirname(dist));
     }
-    fs.copyFileSync(sourcePath, targetPath);
+    fs.copyFileSync(src, dist);
 }
 
 function extractFileConfig(filePath) {
     let type = '';
     const ext = path.extname(filePath);
     const basename = path.basename(filePath);
-    const sourcePath = path.resolve(system.cwd, filePath);
+    const src = path.resolve(system.cwd, filePath);
 
     if (/\.js$/.test(ext)) {
         type = FILE_TYPES.SCRIPT;
@@ -118,57 +123,16 @@ function extractFileConfig(filePath) {
 
     const fileConfig = {
         type,
-        sourcePath,
+        src,
         ext: ext.replace(/^\./, ''),
         name: basename.replace(ext, '')
     };
     return fileConfig;
 }
 
-function saveFile(targetPath, content) {
-    fs.ensureFileSync(targetPath);
-    fs.writeFileSync(targetPath, content, 'utf-8');
-}
-
-class File {
-    constructor({ sourcePath, ext, type, name }) {
-        this.ext = ext;
-        this.type = type;
-        this.originalContent = '';
-        this.compiledContent = '';
-        this.sourcePath = sourcePath;
-        this.targetPath = sourcePath.replace(path.resolve(process.cwd(), 'src'), path.resolve(process.cwd(), 'dist'));
-        this.targetDir = path.dirname(this.targetPath);
-        if (type === FILE_TYPES.STYLE) {
-            this.targetPath = path.join(this.targetDir, `${name}.wxss`);
-        }
-    }
-
-    unlinkFromDist() {
-        fs.unlinkSync(this.targetPath);
-        log.info(ACTIONS.REMOVE, this.targetPath);
-    }
-
-    updateContent() {
-        this.originalContent = fs.readFileSync(this.sourcePath);
-    }
-
-    save() {
-        if (!this.sourcePath || !this.compiledContent || !this.targetPath) return;
-        saveFile(this.targetPath, this.compiledContent);
-    }
-
-    /**
-     * 未知类型文件直接使用拷贝
-     */
-    compile() {
-        log.info(ACTIONS.COPY, this.sourcePath);
-        this.copy();
-    }
-
-    copy() {
-        copyFile(this.sourcePath, this.targetPath);
-    }
+function saveFile(dist, content) {
+    fs.ensureFileSync(dist);
+    fs.writeFileSync(dist, content, 'utf-8');
 }
 
 var _extends = Object.assign || function (target) {
@@ -210,10 +174,68 @@ function save() {
     });
 }
 
+function search(scheme, options = {}) {
+    return new Promise((resolve, reject) => {
+        glob(scheme, options, (err, files) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(files);
+            }
+        });
+    });
+}
+
 function watch(dir, options = {}) {
     return chokidar.watch(dir, _extends({
-        persistent: true
+        persistent: true,
+        ignoreInitial: true
     }, options));
+}
+
+class Dependence {
+    isNpmDependence(dependence) {
+        if (/^(@|[A-Za-z0-1])/.test(dependence)) {
+            const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence);
+            if (fs.existsSync(dependencePath)) {
+                return true;
+            }
+        }
+    }
+
+    isLocalDependence(dependence) {
+        return (/^[/|.|\\]/.test(dependence)
+        );
+    }
+}
+
+class File extends Dependence {
+    constructor(src) {
+        super();
+        const ext = path.extname(src);
+        this.ext = ext.replace(/^\./, '');
+        this.basename = path.basename(src);
+        this.name = this.basename.replace(ext, '');
+        this.src = path.resolve(system.cwd, src);
+        this.originalContent = '';
+        this.compiledContent = '';
+        this.dist = src.replace(system.srcDir, system.distDir);
+        this.distDir = path.dirname(this.dist);
+    }
+
+    unlinkFromDist() {
+        fs.unlinkSync(this.dist);
+        log.info(ACTIONS.REMOVE, this.dist);
+    }
+
+    updateContent() {
+        this.originalContent = fs.readFileSync(this.src);
+    }
+
+    save() {
+        if (!this.src || !this.compiledContent || !this.dist) return;
+        saveFile(this.dist, this.compiledContent);
+    }
 }
 
 const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
@@ -227,95 +249,6 @@ if (fs.existsSync(ankaJsConfigPath)) {
     Object.assign(ankaConfig, require(ankaJsConfigPath));
 } else if (fs.existsSync(ankaJsonConfigPath)) {
     Object.assign(ankaConfig, require(ankaJsonConfigPath));
-}
-
-const cwd = system.cwd;
-
-class NpmDependence {
-    constructor(dependence) {
-        // 该 npm 包的内部所有依赖文件
-        this.localDependencies = {};
-        this.name = dependence;
-        this.sourcePath = path.resolve(cwd, system.sourceNodeModules, dependence);
-        this.targetPath = path.resolve(cwd, system.distNodeModules, dependence);
-        this.pkgInfo = Object.assign({
-            main: 'index.js'
-        }, require(path.join(this.sourcePath, './package.json')));
-    }
-
-    /**
-     * 提取 npm 包内部的所有依赖
-     * @param {string} filePath 依赖文件的绝对路径
-     */
-    extractLocalDependencies(filePath) {
-        if (this.localDependencies[filePath]) return;
-        const fileConfig = extractFileConfig(filePath);
-        const { ast } = babel.transformFileSync(filePath, {
-            ast: true,
-            babelrc: false
-        });
-        traverse(ast, {
-            enter: astNode => {
-                const node = astNode.node;
-                if (astNode.isImportDeclaration()) {
-                    const dependence = node.source.value;
-
-                    if (this.isLocalDependence(dependence)) {
-                        this.extractLocalDependencies(this.resolveModule(dependence, filePath));
-                    } else {
-                        const data = new NpmDependence(dependence);
-
-                        node.source.value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main);
-                    }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
-                    const dependence = node.arguments[0].value;
-                    if (this.isLocalDependence(dependence)) {
-                        this.extractLocalDependencies(this.resolveModule(dependence, filePath));
-                    } else {
-                        const data = new NpmDependence(dependence);
-
-                        node.arguments[0].value = path.join(path.relative(path.dirname(filePath), data.sourcePath), data.pkgInfo.main);
-                    }
-                }
-            }
-        });
-        this.localDependencies[filePath] = {
-            ast,
-            filePath,
-            fileConfig
-        };
-    }
-
-    /**
-     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
-     */
-    move() {
-        this.extractLocalDependencies(this.resolveModule(this.name));
-        Object.values(this.localDependencies).map(dependence => {
-            const filePath = dependence.filePath;
-            const targetPath = filePath.replace(this.sourcePath, this.targetPath);
-            const { code } = babel.transformFromAst(dependence.ast);
-            saveFile(targetPath, code);
-        });
-    }
-
-    resolveModule(dependence = '', relativePath = this.sourcePath) {
-        if (path.parse(relativePath).ext) {
-            relativePath = path.dirname(relativePath);
-        }
-        return require.resolve(dependence, {
-            paths: [relativePath]
-        });
-    }
-
-    isLocalDependence(dependence) {
-        return (/^[/|.|\\]/.test(dependence)
-        );
-    }
-}
-
-function genDependenceData(dependence) {
-    return new NpmDependence(dependence);
 }
 
 class Cache {
@@ -341,56 +274,172 @@ class Cache {
     }
 }
 
-const localFilesCache = new Cache();
-const npmFilesCache = new Cache();
+const localDependenceCache = new Cache();
+const npmDependenceCache = new Cache();
 
-class ScriptFile extends File {
-    /**
-     * 将 node_modules 中存在的包加入依赖
-     * @param {*} dependence
-     */
-    isThirdPartyModule(dependence) {
-        if (/^(@|[A-Za-z0-1])/.test(dependence)) {
-            const dependencePath = path.resolve(process.cwd(), system.sourceNodeModules, dependence);
-            if (fs$1.existsSync(dependencePath)) {
-                return true;
-            }
-        }
+const cwd$1 = system.cwd;
+
+class NpmDependence extends Dependence {
+    constructor(dependence) {
+        super();
+        this.localDependencies = {};
+        this.npmDependencies = {};
+        this.name = dependence;
+        this.src = path.resolve(cwd$1, system.sourceNodeModules, dependence);
+        this.dist = path.resolve(cwd$1, system.distNodeModules, dependence);
+        this.pkgInfo = Object.assign({
+            main: 'index.js'
+        }, require(path.join(this.src, './package.json')));
+        this.main = this.resolveLocalDependence(this.name);
     }
 
-    compile() {
-        this.updateContent();
-        const { ast } = babel.transform(this.originalContent, {
+    /**
+     * 提取 npm 包内部的所有依赖
+     * @param {string} filePath 依赖文件的绝对路径
+     */
+    traverse(filePath) {
+        if (this.localDependencies[filePath]) return;
+        const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
         });
-        const _this = this;
-
         traverse(ast, {
-            enter(astNode) {
+            enter: astNode => {
                 const node = astNode.node;
                 if (astNode.isImportDeclaration()) {
                     const dependence = node.source.value;
-                    if (_this.isThirdPartyModule(dependence)) {
-                        const data = genDependenceData(dependence);
-                        npmFilesCache.set(dependence, data);
-                        node.source.value = path.join(path.relative(_this.targetDir, data.targetPath), data.pkgInfo.main);
+                    if (this.isLocalDependence(dependence)) {
+                        this.traverse(this.resolveLocalDependence(dependence, filePath));
+                    } else if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+
+                        node.source.value = this.resolveNpmDependence(npmDependence, filePath);
                     }
                 } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
                     const dependence = node.arguments[0].value;
-                    if (_this.isThirdPartyModule(dependence)) {
-                        const data = genDependenceData(dependence);
-                        npmFilesCache.set(dependence, data);
-                        node.arguments[0].value = path.join(path.relative(_this.targetDir, data.targetPath), data.pkgInfo.main);
+                    if (this.isLocalDependence(dependence)) {
+                        this.traverse(this.resolveLocalDependence(dependence, filePath));
+                    } else if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.arguments[0].value = this.resolveNpmDependence(npmDependence, filePath);
                     }
                 }
             }
         });
+        this.localDependencies[filePath] = {
+            ast,
+            filePath
+        };
+    }
 
-        this.$ast = ast;
-        this.compiledContent = babel.transformFromAst(ast).code;
+    /**
+     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
+     */
+    compile() {
+        this.traverse(this.main);
+        Object.values(this.localDependencies).map(localDependence => {
+            const filePath = localDependence.filePath;
+            const dist = filePath.replace(this.src, this.dist);
+            const { code } = babel.transformFromAst(localDependence.ast);
+            saveFile(dist, code);
+        });
+        this.updateNpmDependenceCache();
+        log.info(ACTIONS.COMPILE, this.src);
+    }
+
+    /**
+     * 根据依赖名或者相对路径获取依赖的绝对路径，eg: ./index => /A/B/index.js
+     * @param localDependence
+     * @param filePath
+     * @returns {string}
+     */
+    resolveLocalDependence(localDependence = '', filePath = this.src) {
+        if (path.parse(filePath).ext) {
+            filePath = path.dirname(filePath);
+        }
+        return require.resolve(localDependence, {
+            paths: [filePath]
+        });
+    }
+
+    resolveNpmDependence(npmDependence, filePath = this.main) {
+        this.npmDependencies[npmDependence.name] = npmDependence;
+        return path.join(path.relative(path.dirname(filePath), npmDependence.src), npmDependence.pkgInfo.main);
+    }
+
+    updateNpmDependenceCache() {
+        Object.values(this.npmDependencies).forEach(npmDependence => {
+            if (!npmDependenceCache.find(npmDependence.name)) {
+                npmDependenceCache.set(npmDependence.name, npmDependence);
+                npmDependence.compile();
+            }
+        });
+    }
+}
+
+class ScriptFile extends File {
+    constructor(fileConfig) {
+        super(fileConfig);
+        this.type = FILE_TYPES.SCRIPT;
+        this.localDependencies = {};
+        this.npmDependencies = {};
+    }
+
+    compile() {
+        this.traverse();
+        this.compiledContent = babel.transformFromAst(this.$ast).code;
+        this.updateNpmDependenceCache();
         this.save();
-        log.info(ACTIONS.COMPILE, this.sourcePath);
+        log.info(ACTIONS.COMPILE, this.src);
+    }
+
+    traverse() {
+        this.updateContent();
+        this.$ast = babel.transform(this.originalContent, {
+            ast: true,
+            babelrc: false
+        }).ast;
+
+        traverse(this.$ast, {
+            enter: astNode => {
+                const node = astNode.node;
+                if (astNode.isImportDeclaration()) {
+                    const dependence = node.source.value;
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.source.value = this.resolveNpmDependence(npmDependence);
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence);
+                    }
+                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
+                    const dependence = node.arguments[0].value;
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.arguments[0].value = this.resolveNpmDependence(npmDependence);
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence);
+                    }
+                }
+            }
+        });
+    }
+
+    resolveNpmDependence(npmDependence) {
+        this.npmDependencies[npmDependence.name] = npmDependence;
+        return path.join(path.relative(this.distDir, npmDependence.dist), npmDependence.pkgInfo.main);
+    }
+
+    resolveLocalDependence(localDependence) {
+        this.localDependencies[localDependence.dist] = localDependence;
+    }
+
+    updateNpmDependenceCache() {
+        Object.values(this.npmDependencies).forEach(npmDependence => {
+            if (!npmDependenceCache.find(npmDependence.name)) {
+                npmDependenceCache.set(npmDependence.name, npmDependence);
+                npmDependence.compile();
+            }
+        });
     }
 }
 
@@ -443,97 +492,143 @@ function genPostcssConfig() {
 }
 
 class StyleFile extends File {
+    constructor(src) {
+        super(src);
+        this.type = FILE_TYPES.STYLE;
+        this.dist = path.join(this.distDir, `${this.name}.wxss`);
+    }
+
     async compile() {
-        this.updateContent();
         const parser = loader[this.ext];
         if (parser) {
             try {
+                this.updateContent();
                 this.compiledContent = await loader[this.ext]({
-                    file: this.sourcePath,
+                    file: this.src,
                     content: this.originalContent.toString('utf8')
                 });
+                this.save();
+                log.info(ACTIONS.COMPILE, this.src);
             } catch (err) {
-                log.error(ACTIONS.COMPILE, this.sourcePath, err.formatted || err);
+                log.error(ACTIONS.COMPILE, this.src, err.formatted || err);
             }
-            this.save();
-            log.info(ACTIONS.COMPILE, this.sourcePath);
         } else {
-            this.copy();
-            log.info(ACTIONS.COPY, this.sourcePath);
+            copyFile(this.src, this.dist);
+            log.info(ACTIONS.COPY, this.src);
         }
     }
 }
 
-class DevCommand {
-    async addFile(filePath) {
-        let file = null;
-        const fileConfig = extractFileConfig(filePath);
-        if (fileConfig.type === FILE_TYPES.SCRIPT) {
-            file = new ScriptFile(fileConfig);
-        } else if (fileConfig.type === FILE_TYPES.STYLE) {
-            file = new StyleFile(fileConfig);
-        } else {
-            file = new File(fileConfig);
-        }
-        localFilesCache.set(fileConfig.sourcePath, file);
-        await file.compile();
-
-        // else if (fileConfig.type === FILE_TYPES.TPL) {
-        //     this.files[fileConfig.sourcePath] = new TplFile(fileConfig)
-        // }
+class UnknownFile extends File {
+    constructor(src) {
+        super(src);
+        this.type = FILE_TYPES.UNKNOWN;
     }
 
-    unlinkFile(filePath) {
+    /**
+     * 未知类型文件直接使用拷贝
+     */
+    compile() {
+        log.info(ACTIONS.COPY, this.src);
+        copyFile(this.src, this.dist);
+    }
+}
+
+class LocalDependence {
+    constructor(src) {
+        const fileConfig = extractFileConfig(src);
+
+        switch (fileConfig.type) {
+            case FILE_TYPES.SCRIPT:
+                this.file = new ScriptFile(src);
+                break;
+            case FILE_TYPES.STYLE:
+                this.file = new StyleFile(src);
+                break;
+            default:
+                this.file = new UnknownFile(src);
+                break;
+        }
+    }
+
+    updateContent() {
+        this.file.updateContent();
+    }
+
+    async compile() {
+        await this.file.compile();
+    }
+
+    get type() {
+        return this.file.type;
+    }
+
+    get src() {
+        return this.file.src;
+    }
+
+    get dist() {
+        return this.file.dist;
+    }
+}
+
+class DevCommand {
+    addDependence(filePath) {
+        const localDependence = new LocalDependence(filePath);
+        if (!localDependenceCache.find(localDependence.src)) {
+            localDependenceCache.set(localDependence.src, localDependence);
+            localDependence.compile();
+        }
+    }
+
+    unlinkDependence(filePath) {
         const fileConfig = extractFileConfig(filePath);
-        const file = localFilesCache.find(fileConfig.sourcePath);
+        const file = localDependenceCache.find(fileConfig.src);
         if (file) {
             file.unlinkFromDist();
-            localFilesCache.remove(fileConfig.sourcePath);
+            localDependenceCache.remove(fileConfig.src);
         }
     }
 
-    async changeFile(filePath) {
+    async updateDependence(filePath) {
         const fileConfig = extractFileConfig(filePath);
-        const file = localFilesCache.find(fileConfig.sourcePath);
+        const file = localDependenceCache.find(fileConfig.src);
         if (file) {
-            file.updateContent();
             await file.compile();
         }
     }
 
-    extractNpmDependencies(dependenceData) {
-        const pkg = require(path.join(dependenceData.sourcePath, './package.json'));
-        const dependencies = Object.keys(pkg.dependencies);
-        dependencies.map(dependence => {
-            const dependenceData = genDependenceData(dependence);
-            npmFilesCache.set(dependence, dependenceData);
-            if (!npmFilesCache.find(dependence)) {
-                this.extractNpmDependencies(dependenceData);
-            }
+    async run() {
+        const files = await search(`${system.srcDir}/**/*.*`);
+
+        this.clean();
+
+        files.forEach(filePath => {
+            const localDependence = new LocalDependence(filePath);
+            localDependenceCache.set(localDependence.src, localDependence);
         });
-    }
 
-    run() {
-        const dir = path.resolve(process.cwd(), './src/');
-        const watcher = watch(dir);
+        const list = localDependenceCache.list();
 
-        log.success(ACTIONS.READY, dir);
+        for (let index = 0; index < list.length; index++) {
+            await list[index].compile();
+        }
 
-        watcher.on('add', this.addFile.bind(this));
-        watcher.on('unlink', this.unlinkFile.bind(this));
-        watcher.on('change', this.changeFile.bind(this));
-        watcher.on('ready', () => {
-            npmFilesCache.list().map(dependence => {
-                this.extractNpmDependencies(dependence);
-            });
-            npmFilesCache.list().map(pkg => {
-                pkg.move();
-            });
-        });
+        this.watch();
     }
 
     clean() {
-        // TODO
+        fs.emptyDirSync(system.distDir);
+    }
+
+    watch() {
+        const watcher = watch(system.srcDir);
+        watcher.on('add', this.addDependence.bind(this));
+        watcher.on('unlink', this.unlinkDependence.bind(this));
+        watcher.on('change', this.updateDependence.bind(this));
+        watcher.on('ready', () => {
+            log.success(ACTIONS.READY, system.srcDir);
+        });
     }
 }
 
@@ -579,6 +674,71 @@ var init = {
         await downloadRepo(repo, projectName);
         log.stop();
         log.success('创建成功', projectName);
+    }
+};
+
+class BuildCommand {
+    addDependence(filePath) {
+        const localDependence = new LocalDependence(filePath);
+        if (!localDependenceCache.find(localDependence.src)) {
+            localDependenceCache.set(localDependence.src, localDependence);
+            localDependence.compile();
+        }
+    }
+
+    unlinkDependence(filePath) {
+        const fileConfig = extractFileConfig(filePath);
+        const file = localDependenceCache.find(fileConfig.src);
+        if (file) {
+            file.unlinkFromDist();
+            localDependenceCache.remove(fileConfig.src);
+        }
+    }
+
+    async updateDependence(filePath) {
+        const fileConfig = extractFileConfig(filePath);
+        const file = localDependenceCache.find(fileConfig.src);
+        if (file) {
+            await file.compile();
+        }
+    }
+
+    async run() {
+        const files = await search(`${system.srcDir}/**/*.*`);
+
+        this.clean();
+
+        files.forEach(filePath => {
+            const localDependence = new LocalDependence(filePath);
+            localDependenceCache.set(localDependence.src, localDependence);
+        });
+
+        localDependenceCache.list().forEach(localDependence => localDependence.compile());
+    }
+
+    clean() {
+        fs.emptyDirSync(system.distDir);
+    }
+
+    watch() {
+        const watcher = watch(system.srcDir);
+        watcher.on('add', this.addDependence.bind(this));
+        watcher.on('unlink', this.unlinkDependence.bind(this));
+        watcher.on('change', this.updateDependence.bind(this));
+        watcher.on('ready', () => {
+            log.success(ACTIONS.READY, system.srcDir);
+        });
+    }
+}
+
+var build = {
+    command: 'build',
+    alias: '',
+    usage: '[projectName]',
+    description: '构建模式',
+    async action(...args) {
+        const cmd = new BuildCommand();
+        await cmd.run(...args);
     }
 };
 
@@ -640,8 +800,8 @@ async function genPage(targetPage, options) {
 
     await save();
 
-    log.success('页面创建成功', absolutePath);
-    log.success('页面注册成功', absolutePath);
+    log.success('创建页面', absolutePath);
+    log.success('注册页面', absolutePath);
 }
 
 var genPage$1 = {
@@ -780,13 +940,13 @@ var removeComponent = {
     }
 };
 
-var commands = [dev, init, genPage$1, genComponent$1, addComponent, removeComponent];
+var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
 var version = "0.0.1";
 var description = "WeChat miniprogram helper";
 var bin = {
-	anka2: "dist/index.js"
+	anka: "dist/index.js"
 };
 var scripts = {
 	dev: "rollup -c build/rollup.config.dev.js -w",

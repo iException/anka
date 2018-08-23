@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "description": "WeChat miniprogram helper",
     "bin": {
-        "anka2": "dist/index.js"
+        "anka": "dist/index.js"
     },
     "scripts": {
         "dev": "rollup -c build/rollup.config.dev.js -w",

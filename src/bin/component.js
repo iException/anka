@@ -5,10 +5,10 @@ const utils = require('../lib/utils')
 const CONTENT = require('../config/component')
 const CONFIG = utils.genConfig()
 
-function generateComponent (targetPath) {
-    const pathArr = targetPath.split(path.sep)
+function generateComponent (dist) {
+    const pathArr = dist.split(path.sep)
     const name = pathArr.pop()
-    const componentPath = pathArr.length === 0 ? targetPath : pathArr.join(path.sep)
+    const componentPath = pathArr.length === 0 ? dist : pathArr.join(path.sep)
     const dir = path.join(process.cwd(), CONFIG.components, componentPath)
     const jsFilePath = path.join(dir, `${name}.js`)
     const jsonFilePath = path.join(dir, `${name}.json`)
@@ -33,7 +33,7 @@ function generateComponent (targetPath) {
             fs.outputFile(wxssFilePath, CONTENT.wxss)
         ])
     }).then(res => {
-        log.success(`组件 ${targetPath} 创建成功 \r\n\tpath: ${jsonFilePath}`)
+        log.success(`组件 ${dist} 创建成功 \r\n\tpath: ${jsonFilePath}`)
     }).catch(err => {
         log.error(err.message)
         console.log(err)

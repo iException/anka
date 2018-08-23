@@ -21,5 +21,5 @@ export class Cache {
     }
 }
 
-export const localFilesCache = new Cache()
-export const npmFilesCache = new Cache()
+export const localDependenceCache = new Cache()
+export const npmDependenceCache = new Cache()

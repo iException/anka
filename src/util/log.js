@@ -35,7 +35,7 @@ export default {
     },
 
     info (title = '', msg) {
-        this.log(chalk.grey('○'), chalk.reset(title), chalk.grey(msg))
+        this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg))
     },
 
     warn (title = '', msg = '') {
