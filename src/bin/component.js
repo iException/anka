@@ -2,15 +2,14 @@ const path = require('path')
 const fs = require('fs-extra')
 const log = require('../lib/log')
 const utils = require('../lib/utils')
-const CONTENT = require('../config/page')
+const CONTENT = require('../config/component')
 const CONFIG = utils.genConfig()
-const APP_CONFIG = utils.getAppConfig()
 
-function generatePage (targetPath) {
-    const pathArr = targetPath.split(path.sep)
+function generateComponent (dist) {
+    const pathArr = dist.split(path.sep)
     const name = pathArr.pop()
-    const pagePath = pathArr.length === 0 ? targetPath : pathArr.join(path.sep)
-    const dir = path.join(process.cwd(), CONFIG.pages, pagePath)
+    const componentPath = pathArr.length === 0 ? dist : pathArr.join(path.sep)
+    const dir = path.join(process.cwd(), CONFIG.components, componentPath)
     const jsFilePath = path.join(dir, `${name}.js`)
     const jsonFilePath = path.join(dir, `${name}.json`)
     const wxmlFilePath = path.join(dir, `${name}.wxml`)
@@ -24,9 +23,9 @@ function generatePage (targetPath) {
                 reject(err)
             })
         } else {
-            reject(new Error(`页面 ${jsonFilePath} 已经存在`))
+            reject(new Error(`组件 ${jsonFilePath} 已经存在`))
         }
-    }).then(res => {
+    }).then(() => {
         return Promise.all([
             fs.outputFile(jsFilePath, CONTENT.js),
             fs.outputFile(jsonFilePath, CONTENT.json),
@@ -34,15 +33,11 @@ function generatePage (targetPath) {
             fs.outputFile(wxssFilePath, CONTENT.wxss)
         ])
     }).then(res => {
-        log.success(`页面 ${targetPath} 创建成功 \r\n\tpath: ${jsonFilePath}`)
-        APP_CONFIG['pages'].push(path.join(CONFIG.pages, ...pagePath.split(path.sep), name))
-        return fs.writeFile(utils.appConfigPath, JSON.stringify(APP_CONFIG, null, 4))
-    }).then(res => {
-        log.success(`页面 ${targetPath} 注册成功`)
+        log.success(`组件 ${dist} 创建成功 \r\n\tpath: ${jsonFilePath}`)
     }).catch(err => {
         log.error(err.message)
         console.log(err)
     })
 }
 
-module.exports = generatePage
+module.exports = generateComponent

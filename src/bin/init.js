@@ -26,13 +26,12 @@ function mkdir(isRelative) {
         })
     }).then(res => {
         return new Promise((resolve, reject) => {
-            log.base('downloading....')
             download(CONFIG.scaffold, res, { clone: true }, function(err) {
                 err ? reject(err) : resolve()
             })
         })
     }).then(res => {
-        log.base('directory created successfully!')  
+        log.base('directory created successfully!')
     }).catch(err => {
         console.log(err)
     })
