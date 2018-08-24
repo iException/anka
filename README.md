@@ -13,7 +13,7 @@ WeChat miniprogram helper
 ## Install
 
 ```
-  npm install anka -g
+  npm install @anka-dev/cli -g
 ```
 
 ## Usage
