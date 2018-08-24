@@ -943,7 +943,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.0.1";
+var version = "0.2.0";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
@@ -965,8 +965,10 @@ var homepage = "https://github.com/joe223/anka";
 var dependencies = {
 	"await-to-js": "^2.0.1",
 	"babel-core": "^6.26.3",
+	"babel-traverse": "^6.26.0",
 	cfonts: "^2.1.3",
 	chalk: "^2.4.1",
+	chokidar: "^2.0.4",
 	commander: "^2.15.1",
 	"download-git-repo": "^1.0.2",
 	figlet: "^1.2.0",
