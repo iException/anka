@@ -29,8 +29,8 @@ export default {
         return console.log(this.time(), ...msg)
     },
 
-    error (title = '', msg = '', err) {
-        this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg))
+    error (title = '', msg = '', err = '') {
+        this.log('\r\n', chalk.red('✘'), chalk.reset(title), chalk.grey(msg))
         console.log('\r\n', err)
     },
 

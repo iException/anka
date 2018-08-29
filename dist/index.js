@@ -49,8 +49,8 @@ var log = {
         return console.log(this.time(), ...msg);
     },
 
-    error(title = '', msg = '', err) {
-        this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg));
+    error(title = '', msg = '', err = '') {
+        this.log('\r\n', chalk.red('✘'), chalk.reset(title), chalk.grey(msg));
         console.log('\r\n', err);
     },
 
@@ -669,11 +669,13 @@ var init = {
             `);
         }
     },
-    async action(projectName, options) {
-        const repo = options.repe || ankaConfig.scaffold;
+    async action(projectName = 'anka-project', options) {
+        projectName = path.resolve(system.cwd, projectName);
+        const repo = options.repo || system.scaffold;
         const exists = await fs.pathExists(projectName);
 
         if (exists) throw new Error(`${projectName}目录已存在`);
+
         log.loading('Downloading template...');
         await downloadRepo(repo, projectName);
         log.stop();
@@ -950,7 +952,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.1";
+var version = "0.2.3";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
@@ -1053,7 +1055,7 @@ commands.forEach(command => {
             try {
                 await command.action(...args);
             } catch (err) {
-                log.error(err.message);
+                log.error(err.message || '');
                 console.log(err);
             }
         });
