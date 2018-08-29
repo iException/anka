@@ -1,6 +1,6 @@
 {
     "name": "@anka-dev/cli",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "WeChat miniprogram helper",
     "bin": {
         "anka": "dist/index.js"
