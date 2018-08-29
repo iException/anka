@@ -11,6 +11,8 @@
 
 WeChat miniprogram helper
 
+- [Doc](https://iexception.github.io/anka-quickstart/)
+- [Demo](https://github.com/iException/anka-quickstart)
 ## Install
 
 ```
@@ -31,7 +33,7 @@ WeChat miniprogram helper
   Commands:
 
     dev                               开发模式
-    init [options] [projectName]      创建小程序页面
+    init [options] [projectName]      创建小程序项目
     build                             构建模式
     page [options] [targetPage]       创建小程序页面
     component [componentName]         创建小程序组件

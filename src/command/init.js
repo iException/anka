@@ -9,7 +9,7 @@ export default {
     command: 'init [projectName]',
     alias: '',
     usage: '[projectName]',
-    description: '创建小程序页面',
+    description: '创建小程序项目',
     options: [
         ['--repo']
     ],
