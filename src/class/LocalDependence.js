@@ -30,6 +30,10 @@ export default class LocalDependence {
         await this.file.compile()
     }
 
+    unlinkFromDist () {
+        this.file.unlinkFromDist()
+    }
+
     get type () {
         return this.file.type
     }

@@ -1,5 +1,6 @@
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10026019/44260701-d84b6e80-a247-11e8-9d79-5f82be615c84.png" width="300"/>
+  <sub>CLI</sub>
 </p>
 
 <p align="center">

@@ -559,6 +559,10 @@ class LocalDependence {
         await this.file.compile();
     }
 
+    unlinkFromDist() {
+        this.file.unlinkFromDist();
+    }
+
     get type() {
         return this.file.type;
     }
@@ -750,6 +754,9 @@ function commandInfo (infos = []) {
     }).join('\r\n');
 }
 
+const appConfigFile = path.join(system.cwd, './src/app.json');
+const customConfig = fs.existsSync(appConfigFile) ? require(appConfigFile) : {};
+
 const appConfig = Object.assign({
     pages: [],
     subPackages: [],
@@ -758,7 +765,7 @@ const appConfig = Object.assign({
         // tabBar: {
         //     list: []
         // },
-    } }, require(path.join(process.cwd(), './src/app.json')));
+    } }, customConfig);
 
 async function genPage(targetPage, options) {
     const root = options.root;
@@ -943,7 +950,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.0";
+var version = "0.2.1";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
