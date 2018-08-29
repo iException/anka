@@ -961,14 +961,14 @@ var scripts = {
 };
 var repository = {
 	type: "git",
-	url: "https://github.com/joe223/anka/"
+	url: "https://github.com/iException/anka/"
 };
 var author = "";
 var license = "MIT";
 var bugs = {
-	url: "https://github.com/joe223/anka/issues"
+	url: "https://github.com/iException/anka/issues"
 };
-var homepage = "https://github.com/joe223/anka";
+var homepage = "https://github.com/iException/anka";
 var dependencies = {
 	"await-to-js": "^2.0.1",
 	"babel-core": "^6.26.3",
