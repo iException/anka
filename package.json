@@ -11,14 +11,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/joe223/anka/"
+        "url": "https://github.com/iException/anka/"
     },
     "author": "",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/joe223/anka/issues"
+        "url": "https://github.com/iException/anka/issues"
     },
-    "homepage": "https://github.com/joe223/anka",
+    "homepage": "https://github.com/iException/anka",
     "dependencies": {
         "await-to-js": "^2.0.1",
         "babel-core": "^6.26.3",
