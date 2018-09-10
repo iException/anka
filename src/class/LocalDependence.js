@@ -1,6 +1,6 @@
 import File from './File'
-import {extractFileConfig} from '../util'
-import {FILE_TYPES} from '../config/types'
+import { extractFileConfig } from '../util'
+import { FILE_TYPES } from '../config/types'
 import ScriptFile from './ScriptFile'
 import StyleFile from './StyleFile'
 import UnknownFile from './UnknownFile'

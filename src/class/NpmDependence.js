@@ -7,9 +7,9 @@ import traverse from 'babel-traverse'
 import ankaConfig from '../config/ankaConfig'
 import { copyFile, extractFileConfig, saveFile } from '../util'
 import Dependence from './Dependence'
-import {npmDependenceCache} from '../util/cache'
+import { npmDependenceCache } from '../util/cache'
 import log from '../util/log'
-import {ACTIONS} from '../config/types'
+import { ACTIONS } from '../config/types'
 
 const cwd = system.cwd
 
@@ -36,6 +36,7 @@ export class NpmDependence extends Dependence {
         const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
+            // ...system.babelConfig.options
         })
         traverse(ast, {
             enter: astNode => {

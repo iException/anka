@@ -6,6 +6,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
 var path = _interopDefault(require('path'));
+var loader = _interopDefault(require('babel-load-config'));
+var buildConfigChain = _interopDefault(require('babel-core/lib/transformation/file/options/build-config-chain'));
 var fs = _interopDefault(require('fs-extra'));
 var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
@@ -77,7 +79,8 @@ var system = {
     distDir: path.resolve(cwd, 'dist'),
     distNodeModules: './dist/npm_modules',
     sourceNodeModules: './node_modules',
-    scaffold: 'github:iException/mini-program-scaffold'
+    scaffold: 'github:iException/mini-program-scaffold',
+    babelConfig: loader(cwd, buildConfigChain)
 };
 
 const FILE_TYPES = {
@@ -302,6 +305,7 @@ class NpmDependence extends Dependence {
         const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
+            // ...system.babelConfig.options
         });
         traverse(ast, {
             enter: astNode => {
@@ -395,10 +399,10 @@ class ScriptFile extends File {
 
     traverse() {
         this.updateContent();
-        this.$ast = babel.transform(this.originalContent, {
+        this.$ast = babel.transform(this.originalContent, _extends({
             ast: true,
             babelrc: false
-        }).ast;
+        }, system.babelConfig.options)).ast;
 
         traverse(this.$ast, {
             enter: astNode => {
@@ -454,7 +458,7 @@ var postcssWxImport = postcss.plugin('postcss-wximport', () => {
 
 const postcssConfig = {};
 
-var loader = {
+var loader$1 = {
     sass({ file, content }) {
         return sass.renderSync({
             file,
@@ -472,7 +476,6 @@ var loader = {
         const root = await postcss(config.plugins.concat([postcssWxImport])).process(content, _extends({}, config.options, {
             from: file
         }));
-        fs.writeFileSync(system.cwd + '/postcss-ast.json', JSON.stringify(root, null, 4), 'utf-8');
         return root.css;
     }
 
@@ -499,11 +502,11 @@ class StyleFile extends File {
     }
 
     async compile() {
-        const parser = loader[this.ext];
+        const parser = loader$1[this.ext];
         if (parser) {
             try {
                 this.updateContent();
-                this.compiledContent = await loader[this.ext]({
+                this.compiledContent = await loader$1[this.ext]({
                     file: this.src,
                     content: this.originalContent.toString('utf8')
                 });
@@ -659,7 +662,7 @@ var init = {
     command: 'init [projectName]',
     alias: '',
     usage: '[projectName]',
-    description: '创建小程序页面',
+    description: '创建小程序项目',
     options: [['--repo']],
     on: {
         '--help'() {
@@ -952,7 +955,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.3";
+var version = "0.2.4";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
@@ -974,6 +977,7 @@ var homepage = "https://github.com/iException/anka";
 var dependencies = {
 	"await-to-js": "^2.0.1",
 	"babel-core": "^6.26.3",
+	"babel-load-config": "^1.0.0",
 	"babel-traverse": "^6.26.0",
 	cfonts: "^2.1.3",
 	chalk: "^2.4.1",

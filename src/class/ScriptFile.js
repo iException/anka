@@ -5,10 +5,10 @@ import log from '../util/log'
 import babel from 'babel-core'
 import system from '../config'
 import traverse from 'babel-traverse'
-import {ACTIONS, FILE_TYPES} from '../config/types'
+import { ACTIONS, FILE_TYPES } from '../config/types'
 import genDependenceData from '../util/genDependenceData'
 import { npmDependenceCache, localDependenceCache } from '../util/cache'
-import {NpmDependence} from './NpmDependence'
+import { NpmDependence } from './NpmDependence'
 
 export default class ScriptFile extends File {
     constructor (fileConfig) {
@@ -30,7 +30,8 @@ export default class ScriptFile extends File {
         this.updateContent()
         this.$ast = babel.transform(this.originalContent, {
             ast: true,
-            babelrc: false
+            babelrc: false,
+            ...system.babelConfig.options
         }).ast
 
         traverse(this.$ast, {
