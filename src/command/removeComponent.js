@@ -9,9 +9,9 @@ async function genComponent (targetComponent, options) {
     const pathArr = targetComponent.split(path.sep)
     const name = pathArr.pop()
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name)
-    const absolutePath = path.join(process.cwd(), './src', componentPath)
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath)
     const jsonFilePath = `${absolutePath}.json`
-    const pageJsonPath = path.join(process.cwd(), './src', `${page}.json`)
+    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`)
 
     if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`)
     if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`)

@@ -5,10 +5,10 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
+var fs = _interopDefault(require('fs-extra'));
 var path = _interopDefault(require('path'));
 var loader = _interopDefault(require('babel-load-config'));
 var buildConfigChain = _interopDefault(require('babel-core/lib/transformation/file/options/build-config-chain'));
-var fs = _interopDefault(require('fs-extra'));
 var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
 var chokidar = _interopDefault(require('chokidar'));
@@ -69,14 +69,29 @@ var log = {
     }
 };
 
+const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
+const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
+const ankaConfig = {
+    sourceDir: './src',
+    outputDir: './dist',
+    pages: './pages',
+    components: './components'
+};
+
+if (fs.existsSync(ankaJsConfigPath)) {
+    Object.assign(ankaConfig, require(ankaJsConfigPath));
+} else if (fs.existsSync(ankaJsonConfigPath)) {
+    Object.assign(ankaConfig, require(ankaJsonConfigPath));
+}
+
 const cwd = process.cwd();
 
 var system = {
     // 开发模式
     cwd,
     devMode: true,
-    srcDir: path.resolve(cwd, 'src'),
-    distDir: path.resolve(cwd, 'dist'),
+    srcDir: path.resolve(cwd, ankaConfig.sourceDir),
+    distDir: path.resolve(cwd, ankaConfig.outputDir),
     distNodeModules: './dist/npm_modules',
     sourceNodeModules: './node_modules',
     scaffold: 'github:iException/mini-program-scaffold',
@@ -239,19 +254,6 @@ class File extends Dependence {
         if (!this.src || !this.compiledContent || !this.dist) return;
         saveFile(this.dist, this.compiledContent);
     }
-}
-
-const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
-const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
-const ankaConfig = {
-    pages: './src/pages',
-    components: './src/components'
-};
-
-if (fs.existsSync(ankaJsConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsConfigPath));
-} else if (fs.existsSync(ankaJsonConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsonConfigPath));
 }
 
 class Cache {
@@ -759,7 +761,7 @@ function commandInfo (infos = []) {
     }).join('\r\n');
 }
 
-const appConfigFile = path.join(system.cwd, './src/app.json');
+const appConfigFile = path.join(system.cwd, ankaConfig.sourceDir, './app.json');
 const customConfig = fs.existsSync(appConfigFile) ? require(appConfigFile) : {};
 
 const appConfig = Object.assign({
@@ -777,7 +779,7 @@ async function genPage(targetPage, options) {
     const pathArr = targetPage.split(path.sep);
     const name = pathArr.pop();
     const pagePath = path.join(pathArr.length === 0 ? targetPage : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', root || ankaConfig.pages, pagePath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, root || ankaConfig.pages, pagePath);
     const scriptFilePath = `${absolutePath}.js`;
     const jsonFilePath = `${absolutePath}.json`;
     const tplFilePath = `${absolutePath}.wxml`;
@@ -808,7 +810,7 @@ async function genPage(targetPage, options) {
     copy(path.resolve(__dirname, '../template/page/index.wxml'), tplFilePath, context);
     copy(path.resolve(__dirname, '../template/page/index.wxss'), styleFilePath, context);
     copy(path.resolve(__dirname, '../template/page/index.json'), jsonFilePath, context);
-    write(path.resolve(process.cwd(), './src/app.json'), JSON.stringify(appConfig, null, 4));
+    write(path.resolve(process.cwd(), ankaConfig.sourceDir, './app.json'), JSON.stringify(appConfig, null, 4));
 
     await save();
 
@@ -839,7 +841,7 @@ async function genComponent(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const scriptFilePath = `${absolutePath}.js`;
     const jsonFilePath = `${absolutePath}.json`;
     const tplFilePath = `${absolutePath}.wxml`;
@@ -881,9 +883,9 @@ async function genComponent$2(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), './src', `${page}.json`);
+    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
 
     if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
     if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
@@ -919,9 +921,9 @@ async function genComponent$3(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), './src', `${page}.json`);
+    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
 
     if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
     if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
@@ -955,7 +957,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.4";
+var version = "0.2.5";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
