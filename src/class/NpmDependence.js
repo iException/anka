@@ -1,17 +1,13 @@
 import path from 'path'
 import fs from 'fs-extra'
-import File from './File'
+import log from '../util/log'
 import babel from 'babel-core'
 import system from '../config'
+import { saveFile } from '../util'
 import traverse from 'babel-traverse'
-import ankaConfig from '../config/ankaConfig'
-import { copyFile, extractFileConfig, saveFile } from '../util'
 import Dependence from './Dependence'
-import { npmDependenceCache } from '../util/cache'
-import log from '../util/log'
 import { ACTIONS } from '../config/types'
-
-const cwd = system.cwd
+import { npmDependenceCache } from '../util/cache'
 
 export class NpmDependence extends Dependence {
     constructor (dependence) {
@@ -19,11 +15,19 @@ export class NpmDependence extends Dependence {
         this.localDependencies = {}
         this.npmDependencies = {}
         this.name = dependence
-        this.src = path.resolve(cwd, system.sourceNodeModules, dependence)
-        this.dist = path.resolve(cwd, system.distNodeModules, dependence)
-        this.pkgInfo = Object.assign({
-            main: 'index.js'
-        }, require(path.join(this.src, './package.json')))
+        this.src = path.join(system.sourceNodeModules, dependence)
+        this.dist = path.join(system.distNodeModules, dependence)
+        this.distDir = path.dirname(this.dist)
+
+        const pkgPath = path.join(this.src, 'package.json')
+
+        if (fs.existsSync(pkgPath)) {
+            this.pkgInfo = Object.assign({
+                main: 'index.js'
+            }, require(pkgPath))
+        }
+
+        // Maybe there is not pkgInfo here
         this.main = this.resolveLocalDependence(this.name)
     }
 
@@ -78,7 +82,7 @@ export class NpmDependence extends Dependence {
         this.traverse(this.main)
         Object.values(this.localDependencies).map(localDependence => {
             const filePath = localDependence.filePath
-            const dist = filePath.replace(this.src, this.dist)
+            const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules)
             const { code } = babel.transformFromAst(localDependence.ast)
             saveFile(dist, code)
         })
@@ -101,9 +105,15 @@ export class NpmDependence extends Dependence {
         })
     }
 
+    /**
+     * 在 npm_modules 目录下均使用相对路径
+     * @param {*} npmDependence
+     * @param {*} filePath npm 模块【文件】路径
+     */
     resolveNpmDependence (npmDependence, filePath = this.main) {
+        const dist = path.relative(path.dirname(filePath), npmDependence.src)
         this.npmDependencies[npmDependence.name] = npmDependence
-        return path.join(path.relative(path.dirname(filePath), npmDependence.src), npmDependence.pkgInfo.main)
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist
     }
 
     updateNpmDependenceCache () {

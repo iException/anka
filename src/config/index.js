@@ -11,8 +11,8 @@ export default {
     devMode: true,
     srcDir: path.resolve(cwd, ankaConfig.sourceDir),
     distDir: path.resolve(cwd, ankaConfig.outputDir),
-    distNodeModules: './dist/npm_modules',
-    sourceNodeModules: './node_modules',
-    scaffold: 'github:iException/mini-program-scaffold',
+    distNodeModules: path.resolve(cwd, './dist/npm_modules'),
+    sourceNodeModules: path.resolve(cwd, './node_modules'),
+    scaffold: 'direct:https://github.com/iException/anka-quickstart',
     babelConfig: loader(cwd, buildConfigChain)
 }

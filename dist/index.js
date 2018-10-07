@@ -13,12 +13,11 @@ var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
 var chokidar = _interopDefault(require('chokidar'));
 var memFsEditor = _interopDefault(require('mem-fs-editor'));
-var babel = _interopDefault(require('babel-core'));
-var traverse = _interopDefault(require('babel-traverse'));
-require('fs');
 var postcss = _interopDefault(require('postcss'));
 var sass = _interopDefault(require('node-sass'));
 var postcssrc = _interopDefault(require('postcss-load-config'));
+var babel = _interopDefault(require('babel-core'));
+var traverse = _interopDefault(require('babel-traverse'));
 var download = _interopDefault(require('download-git-repo'));
 var cfonts = _interopDefault(require('cfonts'));
 var commander = _interopDefault(require('commander'));
@@ -92,9 +91,9 @@ var system = {
     devMode: true,
     srcDir: path.resolve(cwd, ankaConfig.sourceDir),
     distDir: path.resolve(cwd, ankaConfig.outputDir),
-    distNodeModules: './dist/npm_modules',
-    sourceNodeModules: './node_modules',
-    scaffold: 'github:iException/mini-program-scaffold',
+    distNodeModules: path.resolve(cwd, './dist/npm_modules'),
+    sourceNodeModules: path.resolve(cwd, './node_modules'),
+    scaffold: 'direct:https://github.com/iException/anka-quickstart',
     babelConfig: loader(cwd, buildConfigChain)
 };
 
@@ -215,7 +214,7 @@ class Dependence {
     isNpmDependence(dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
             const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence);
-            if (fs.existsSync(dependencePath)) {
+            if (fs.existsSync(dependencePath) || fs.existsSync(require.resolve(dependencePath))) {
                 return true;
             }
         }
@@ -253,199 +252,6 @@ class File extends Dependence {
     save() {
         if (!this.src || !this.compiledContent || !this.dist) return;
         saveFile(this.dist, this.compiledContent);
-    }
-}
-
-class Cache {
-    constructor() {
-        this.store = {};
-    }
-
-    remove(name) {
-        delete this.store[name];
-    }
-
-    set(name, data) {
-        this.store[name] = data;
-        return data;
-    }
-
-    find(name) {
-        return this.store[name];
-    }
-
-    list() {
-        return Object.values(this.store);
-    }
-}
-
-const localDependenceCache = new Cache();
-const npmDependenceCache = new Cache();
-
-const cwd$1 = system.cwd;
-
-class NpmDependence extends Dependence {
-    constructor(dependence) {
-        super();
-        this.localDependencies = {};
-        this.npmDependencies = {};
-        this.name = dependence;
-        this.src = path.resolve(cwd$1, system.sourceNodeModules, dependence);
-        this.dist = path.resolve(cwd$1, system.distNodeModules, dependence);
-        this.pkgInfo = Object.assign({
-            main: 'index.js'
-        }, require(path.join(this.src, './package.json')));
-        this.main = this.resolveLocalDependence(this.name);
-    }
-
-    /**
-     * 提取 npm 包内部的所有依赖
-     * @param {string} filePath 依赖文件的绝对路径
-     */
-    traverse(filePath) {
-        if (this.localDependencies[filePath]) return;
-        const { ast } = babel.transformFileSync(filePath, {
-            ast: true,
-            babelrc: false
-            // ...system.babelConfig.options
-        });
-        traverse(ast, {
-            enter: astNode => {
-                const node = astNode.node;
-                if (astNode.isImportDeclaration()) {
-                    const dependence = node.source.value;
-                    if (this.isLocalDependence(dependence)) {
-                        this.traverse(this.resolveLocalDependence(dependence, filePath));
-                    } else if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-
-                        node.source.value = this.resolveNpmDependence(npmDependence, filePath);
-                    }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
-                    const dependence = node.arguments[0].value;
-                    if (this.isLocalDependence(dependence)) {
-                        this.traverse(this.resolveLocalDependence(dependence, filePath));
-                    } else if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.arguments[0].value = this.resolveNpmDependence(npmDependence, filePath);
-                    }
-                }
-            }
-        });
-        this.localDependencies[filePath] = {
-            ast,
-            filePath
-        };
-    }
-
-    /**
-     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
-     */
-    compile() {
-        this.traverse(this.main);
-        Object.values(this.localDependencies).map(localDependence => {
-            const filePath = localDependence.filePath;
-            const dist = filePath.replace(this.src, this.dist);
-            const { code } = babel.transformFromAst(localDependence.ast);
-            saveFile(dist, code);
-        });
-        this.updateNpmDependenceCache();
-        log.info(ACTIONS.COMPILE, this.src);
-    }
-
-    /**
-     * 根据依赖名或者相对路径获取依赖的绝对路径，eg: ./index => /A/B/index.js
-     * @param localDependence
-     * @param filePath
-     * @returns {string}
-     */
-    resolveLocalDependence(localDependence = '', filePath = this.src) {
-        if (path.parse(filePath).ext) {
-            filePath = path.dirname(filePath);
-        }
-        return require.resolve(localDependence, {
-            paths: [filePath]
-        });
-    }
-
-    resolveNpmDependence(npmDependence, filePath = this.main) {
-        this.npmDependencies[npmDependence.name] = npmDependence;
-        return path.join(path.relative(path.dirname(filePath), npmDependence.src), npmDependence.pkgInfo.main);
-    }
-
-    updateNpmDependenceCache() {
-        Object.values(this.npmDependencies).forEach(npmDependence => {
-            if (!npmDependenceCache.find(npmDependence.name)) {
-                npmDependenceCache.set(npmDependence.name, npmDependence);
-                npmDependence.compile();
-            }
-        });
-    }
-}
-
-class ScriptFile extends File {
-    constructor(fileConfig) {
-        super(fileConfig);
-        this.type = FILE_TYPES.SCRIPT;
-        this.localDependencies = {};
-        this.npmDependencies = {};
-    }
-
-    compile() {
-        this.traverse();
-        this.compiledContent = babel.transformFromAst(this.$ast).code;
-        this.updateNpmDependenceCache();
-        this.save();
-        log.info(ACTIONS.COMPILE, this.src);
-    }
-
-    traverse() {
-        this.updateContent();
-        this.$ast = babel.transform(this.originalContent, _extends({
-            ast: true,
-            babelrc: false
-        }, system.babelConfig.options)).ast;
-
-        traverse(this.$ast, {
-            enter: astNode => {
-                const node = astNode.node;
-                if (astNode.isImportDeclaration()) {
-                    const dependence = node.source.value;
-                    if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.source.value = this.resolveNpmDependence(npmDependence);
-                    } else if (this.isLocalDependence(dependence)) {
-                        this.resolveLocalDependence(dependence);
-                    }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
-                    const dependence = node.arguments[0].value;
-                    if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.arguments[0].value = this.resolveNpmDependence(npmDependence);
-                    } else if (this.isLocalDependence(dependence)) {
-                        this.resolveLocalDependence(dependence);
-                    }
-                }
-            }
-        });
-    }
-
-    resolveNpmDependence(npmDependence) {
-        this.npmDependencies[npmDependence.name] = npmDependence;
-        return path.join(path.relative(this.distDir, npmDependence.dist), npmDependence.pkgInfo.main);
-    }
-
-    resolveLocalDependence(localDependence) {
-        this.localDependencies[localDependence.dist] = localDependence;
-    }
-
-    updateNpmDependenceCache() {
-        Object.values(this.npmDependencies).forEach(npmDependence => {
-            if (!npmDependenceCache.find(npmDependence.name)) {
-                npmDependenceCache.set(npmDependence.name, npmDependence);
-                npmDependence.compile();
-            }
-        });
     }
 }
 
@@ -521,6 +327,212 @@ class StyleFile extends File {
             copyFile(this.src, this.dist);
             log.info(ACTIONS.COPY, this.src);
         }
+    }
+}
+
+class Cache {
+    constructor() {
+        this.store = {};
+    }
+
+    remove(name) {
+        delete this.store[name];
+    }
+
+    set(name, data) {
+        this.store[name] = data;
+        return data;
+    }
+
+    find(name) {
+        return this.store[name];
+    }
+
+    list() {
+        return Object.values(this.store);
+    }
+}
+
+const localDependenceCache = new Cache();
+const npmDependenceCache = new Cache();
+
+class NpmDependence extends Dependence {
+    constructor(dependence) {
+        super();
+        this.localDependencies = {};
+        this.npmDependencies = {};
+        this.name = dependence;
+        this.src = path.join(system.sourceNodeModules, dependence);
+        this.dist = path.join(system.distNodeModules, dependence);
+        this.distDir = path.dirname(this.dist);
+
+        const pkgPath = path.join(this.src, 'package.json');
+
+        if (fs.existsSync(pkgPath)) {
+            this.pkgInfo = Object.assign({
+                main: 'index.js'
+            }, require(pkgPath));
+        }
+
+        // Maybe there is not pkgInfo here
+        this.main = this.resolveLocalDependence(this.name);
+    }
+
+    /**
+     * 提取 npm 包内部的所有依赖
+     * @param {string} filePath 依赖文件的绝对路径
+     */
+    traverse(filePath) {
+        if (this.localDependencies[filePath]) return;
+        const { ast } = babel.transformFileSync(filePath, {
+            ast: true,
+            babelrc: false
+            // ...system.babelConfig.options
+        });
+        traverse(ast, {
+            enter: astNode => {
+                const node = astNode.node;
+                if (astNode.isImportDeclaration()) {
+                    const dependence = node.source.value;
+                    if (this.isLocalDependence(dependence)) {
+                        this.traverse(this.resolveLocalDependence(dependence, filePath));
+                    } else if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+
+                        node.source.value = this.resolveNpmDependence(npmDependence, filePath);
+                    }
+                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
+                    const dependence = node.arguments[0].value;
+                    if (this.isLocalDependence(dependence)) {
+                        this.traverse(this.resolveLocalDependence(dependence, filePath));
+                    } else if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.arguments[0].value = this.resolveNpmDependence(npmDependence, filePath);
+                    }
+                }
+            }
+        });
+        this.localDependencies[filePath] = {
+            ast,
+            filePath
+        };
+    }
+
+    /**
+     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
+     */
+    compile() {
+        this.traverse(this.main);
+        Object.values(this.localDependencies).map(localDependence => {
+            const filePath = localDependence.filePath;
+            const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules);
+            const { code } = babel.transformFromAst(localDependence.ast);
+            saveFile(dist, code);
+        });
+        this.updateNpmDependenceCache();
+        log.info(ACTIONS.COMPILE, this.src);
+    }
+
+    /**
+     * 根据依赖名或者相对路径获取依赖的绝对路径，eg: ./index => /A/B/index.js
+     * @param localDependence
+     * @param filePath
+     * @returns {string}
+     */
+    resolveLocalDependence(localDependence = '', filePath = this.src) {
+        if (path.parse(filePath).ext) {
+            filePath = path.dirname(filePath);
+        }
+        return require.resolve(localDependence, {
+            paths: [filePath]
+        });
+    }
+
+    /**
+     * 在 npm_modules 目录下均使用相对路径
+     * @param {*} npmDependence
+     * @param {*} filePath npm 模块【文件】路径
+     */
+    resolveNpmDependence(npmDependence, filePath = this.main) {
+        const dist = path.relative(path.dirname(filePath), npmDependence.src);
+        this.npmDependencies[npmDependence.name] = npmDependence;
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
+    }
+
+    updateNpmDependenceCache() {
+        Object.values(this.npmDependencies).forEach(npmDependence => {
+            if (!npmDependenceCache.find(npmDependence.name)) {
+                npmDependenceCache.set(npmDependence.name, npmDependence);
+                npmDependence.compile();
+            }
+        });
+    }
+}
+
+class ScriptFile extends File {
+    constructor(fileConfig) {
+        super(fileConfig);
+        this.type = FILE_TYPES.SCRIPT;
+        this.localDependencies = {};
+        this.npmDependencies = {};
+    }
+
+    compile() {
+        this.traverse();
+        this.compiledContent = babel.transformFromAst(this.$ast).code;
+        this.updateNpmDependenceCache();
+        this.save();
+        log.info(ACTIONS.COMPILE, this.src);
+    }
+
+    traverse() {
+        this.updateContent();
+        this.$ast = babel.transform(this.originalContent, _extends({
+            ast: true,
+            babelrc: false
+        }, system.babelConfig.options)).ast;
+
+        traverse(this.$ast, {
+            enter: astNode => {
+                const node = astNode.node;
+                if (astNode.isImportDeclaration()) {
+                    const dependence = node.source.value;
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.source.value = this.resolveNpmDependence(npmDependence);
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence);
+                    }
+                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
+                    const dependence = node.arguments[0].value;
+                    if (this.isNpmDependence(dependence)) {
+                        const npmDependence = new NpmDependence(dependence);
+                        node.arguments[0].value = this.resolveNpmDependence(npmDependence);
+                    } else if (this.isLocalDependence(dependence)) {
+                        this.resolveLocalDependence(dependence);
+                    }
+                }
+            }
+        });
+    }
+
+    resolveNpmDependence(npmDependence) {
+        const dist = path.relative(this.distDir, npmDependence.dist);
+        this.npmDependencies[npmDependence.name] = npmDependence;
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
+    }
+
+    resolveLocalDependence(localDependence) {
+        this.localDependencies[localDependence.dist] = localDependence;
+    }
+
+    updateNpmDependenceCache() {
+        Object.values(this.npmDependencies).forEach(npmDependence => {
+            if (!npmDependenceCache.find(npmDependence.name)) {
+                npmDependenceCache.set(npmDependence.name, npmDependence);
+                npmDependence.compile();
+            }
+        });
     }
 }
 

@@ -6,7 +6,7 @@ export default class Dependence {
     isNpmDependence (dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
             const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence)
-            if (fs.existsSync(dependencePath)) {
+            if (fs.existsSync(dependencePath) || fs.existsSync(require.resolve(dependencePath))) {
                 return true
             }
         }
