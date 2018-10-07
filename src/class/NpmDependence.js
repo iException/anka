@@ -83,7 +83,9 @@ export class NpmDependence extends Dependence {
         Object.values(this.localDependencies).map(localDependence => {
             const filePath = localDependence.filePath
             const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules)
-            const { code } = babel.transformFromAst(localDependence.ast)
+            const { code } = babel.transformFromAst(localDependence.ast, null, {
+                compact: !system.devMode
+            })
             saveFile(dist, code)
         })
         this.updateNpmDependenceCache()

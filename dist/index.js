@@ -271,7 +271,7 @@ var loader$1 = {
         return sass.renderSync({
             file,
             data: content,
-            outputStyle: 'nested'
+            outputStyle: system.devMode ? 'nested' : 'compressed'
         }).css;
     },
 
@@ -426,7 +426,9 @@ class NpmDependence extends Dependence {
         Object.values(this.localDependencies).map(localDependence => {
             const filePath = localDependence.filePath;
             const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules);
-            const { code } = babel.transformFromAst(localDependence.ast);
+            const { code } = babel.transformFromAst(localDependence.ast, null, {
+                compact: !system.devMode
+            });
             saveFile(dist, code);
         });
         this.updateNpmDependenceCache();
@@ -479,7 +481,9 @@ class ScriptFile extends File {
 
     compile() {
         this.traverse();
-        this.compiledContent = babel.transformFromAst(this.$ast).code;
+        this.compiledContent = babel.transformFromAst(this.$ast, null, {
+            compact: !system.devMode
+        }).code;
         this.updateNpmDependenceCache();
         this.save();
         log.info(ACTIONS.COMPILE, this.src);
@@ -701,6 +705,10 @@ var init = {
 };
 
 class BuildCommand {
+    constructor() {
+        system.devMode = false;
+    }
+
     addDependence(filePath) {
         const localDependence = new LocalDependence(filePath);
         if (!localDependenceCache.find(localDependence.src)) {

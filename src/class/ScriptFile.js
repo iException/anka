@@ -18,7 +18,9 @@ export default class ScriptFile extends File {
 
     compile () {
         this.traverse()
-        this.compiledContent = babel.transformFromAst(this.$ast).code
+        this.compiledContent = babel.transformFromAst(this.$ast, null, {
+            compact: !system.devMode
+        }).code
         this.updateNpmDependenceCache()
         this.save()
         log.info(ACTIONS.COMPILE, this.src)
