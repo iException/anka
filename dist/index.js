@@ -977,7 +977,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.6";
+var version = "0.2.7";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
