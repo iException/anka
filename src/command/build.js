@@ -8,6 +8,10 @@ import LocalDependence from '../class/LocalDependence'
 import { localDependenceCache } from '../util/cache'
 
 class BuildCommand {
+    constructor () {
+        system.devMode = false
+    }
+
     addDependence (filePath) {
         const localDependence = new LocalDependence(filePath)
         if (!localDependenceCache.find(localDependence.src)) {

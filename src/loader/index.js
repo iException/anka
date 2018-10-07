@@ -26,7 +26,6 @@ export default {
             ...config.options,
             from: file
         })
-        fs.writeFileSync(system.cwd + '/postcss-ast.json', JSON.stringify(root, null, 4), 'utf-8')
         return root.css
     }
 

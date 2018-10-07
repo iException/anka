@@ -1,6 +1,6 @@
 {
     "name": "@anka-dev/cli",
-    "version": "0.2.4",
+    "version": "0.2.7",
     "description": "WeChat miniprogram helper",
     "bin": {
         "anka": "dist/index.js"
@@ -22,6 +22,7 @@
     "dependencies": {
         "await-to-js": "^2.0.1",
         "babel-core": "^6.26.3",
+        "babel-load-config": "^1.0.0",
         "babel-traverse": "^6.26.0",
         "cfonts": "^2.1.3",
         "chalk": "^2.4.1",

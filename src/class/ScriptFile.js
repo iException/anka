@@ -1,14 +1,12 @@
-import fs from 'fs'
 import path from 'path'
 import File from './File'
 import log from '../util/log'
 import babel from 'babel-core'
 import system from '../config'
 import traverse from 'babel-traverse'
-import {ACTIONS, FILE_TYPES} from '../config/types'
-import genDependenceData from '../util/genDependenceData'
-import { npmDependenceCache, localDependenceCache } from '../util/cache'
-import {NpmDependence} from './NpmDependence'
+import { NpmDependence } from './NpmDependence'
+import { npmDependenceCache } from '../util/cache'
+import { ACTIONS, FILE_TYPES } from '../config/types'
 
 export default class ScriptFile extends File {
     constructor (fileConfig) {
@@ -20,7 +18,9 @@ export default class ScriptFile extends File {
 
     compile () {
         this.traverse()
-        this.compiledContent = babel.transformFromAst(this.$ast).code
+        this.compiledContent = babel.transformFromAst(this.$ast, null, {
+            compact: !system.devMode
+        }).code
         this.updateNpmDependenceCache()
         this.save()
         log.info(ACTIONS.COMPILE, this.src)
@@ -30,7 +30,8 @@ export default class ScriptFile extends File {
         this.updateContent()
         this.$ast = babel.transform(this.originalContent, {
             ast: true,
-            babelrc: false
+            babelrc: false,
+            ...system.babelConfig.options
         }).ast
 
         traverse(this.$ast, {
@@ -63,8 +64,9 @@ export default class ScriptFile extends File {
     }
 
     resolveNpmDependence (npmDependence) {
+        const dist = path.relative(this.distDir, npmDependence.dist)
         this.npmDependencies[npmDependence.name] = npmDependence
-        return path.join(path.relative(this.distDir, npmDependence.dist), npmDependence.pkgInfo.main)
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist
     }
 
     resolveLocalDependence (localDependence) {

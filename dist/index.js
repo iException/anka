@@ -5,18 +5,19 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
-var path = _interopDefault(require('path'));
 var fs = _interopDefault(require('fs-extra'));
+var path = _interopDefault(require('path'));
+var loader = _interopDefault(require('babel-load-config'));
+var buildConfigChain = _interopDefault(require('babel-core/lib/transformation/file/options/build-config-chain'));
 var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
 var chokidar = _interopDefault(require('chokidar'));
 var memFsEditor = _interopDefault(require('mem-fs-editor'));
-var babel = _interopDefault(require('babel-core'));
-var traverse = _interopDefault(require('babel-traverse'));
-require('fs');
 var postcss = _interopDefault(require('postcss'));
 var sass = _interopDefault(require('node-sass'));
 var postcssrc = _interopDefault(require('postcss-load-config'));
+var babel = _interopDefault(require('babel-core'));
+var traverse = _interopDefault(require('babel-traverse'));
 var download = _interopDefault(require('download-git-repo'));
 var cfonts = _interopDefault(require('cfonts'));
 var commander = _interopDefault(require('commander'));
@@ -67,17 +68,33 @@ var log = {
     }
 };
 
+const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
+const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
+const ankaConfig = {
+    sourceDir: './src',
+    outputDir: './dist',
+    pages: './pages',
+    components: './components'
+};
+
+if (fs.existsSync(ankaJsConfigPath)) {
+    Object.assign(ankaConfig, require(ankaJsConfigPath));
+} else if (fs.existsSync(ankaJsonConfigPath)) {
+    Object.assign(ankaConfig, require(ankaJsonConfigPath));
+}
+
 const cwd = process.cwd();
 
 var system = {
     // 开发模式
     cwd,
     devMode: true,
-    srcDir: path.resolve(cwd, 'src'),
-    distDir: path.resolve(cwd, 'dist'),
-    distNodeModules: './dist/npm_modules',
-    sourceNodeModules: './node_modules',
-    scaffold: 'github:iException/mini-program-scaffold'
+    srcDir: path.resolve(cwd, ankaConfig.sourceDir),
+    distDir: path.resolve(cwd, ankaConfig.outputDir),
+    distNodeModules: path.resolve(cwd, './dist/npm_modules'),
+    sourceNodeModules: path.resolve(cwd, './node_modules'),
+    scaffold: 'direct:https://github.com/iException/anka-quickstart',
+    babelConfig: loader(cwd, buildConfigChain)
 };
 
 const FILE_TYPES = {
@@ -197,7 +214,7 @@ class Dependence {
     isNpmDependence(dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
             const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence);
-            if (fs.existsSync(dependencePath)) {
+            if (fs.existsSync(dependencePath) || fs.existsSync(require.resolve(dependencePath))) {
                 return true;
             }
         }
@@ -238,17 +255,79 @@ class File extends Dependence {
     }
 }
 
-const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
-const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
-const ankaConfig = {
-    pages: './src/pages',
-    components: './src/components'
+var postcssWxImport = postcss.plugin('postcss-wximport', () => {
+    return root => {
+        root.walkAtRules('wximport', rule => {
+            rule.name = 'import';
+            rule.params = rule.params.replace(/\.\w+(?=['"]$)/, '.wxss');
+        });
+    };
+});
+
+const postcssConfig = {};
+
+var loader$1 = {
+    sass({ file, content }) {
+        return sass.renderSync({
+            file,
+            data: content,
+            outputStyle: system.devMode ? 'nested' : 'compressed'
+        }).css;
+    },
+
+    scss(content) {
+        return this.sass(content);
+    },
+
+    async css({ file, content }) {
+        const config = await genPostcssConfig();
+        const root = await postcss(config.plugins.concat([postcssWxImport])).process(content, _extends({}, config.options, {
+            from: file
+        }));
+        return root.css;
+    }
+
+    // less (content) {
+    //     return content
+    // },
+    //
+    // wxss (content) {
+    //     return content
+    // }
 };
 
-if (fs.existsSync(ankaJsConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsConfigPath));
-} else if (fs.existsSync(ankaJsonConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsonConfigPath));
+function genPostcssConfig() {
+    return postcssConfig.plugins ? Promise.resolve(postcssConfig) : postcssrc({}).then(config => {
+        return Promise.resolve(Object.assign(postcssConfig, config));
+    });
+}
+
+class StyleFile extends File {
+    constructor(src) {
+        super(src);
+        this.type = FILE_TYPES.STYLE;
+        this.dist = path.join(this.distDir, `${this.name}.wxss`);
+    }
+
+    async compile() {
+        const parser = loader$1[this.ext];
+        if (parser) {
+            try {
+                this.updateContent();
+                this.compiledContent = await loader$1[this.ext]({
+                    file: this.src,
+                    content: this.originalContent.toString('utf8')
+                });
+                this.save();
+                log.info(ACTIONS.COMPILE, this.src);
+            } catch (err) {
+                log.error(ACTIONS.COMPILE, this.src, err.formatted || err);
+            }
+        } else {
+            copyFile(this.src, this.dist);
+            log.info(ACTIONS.COPY, this.src);
+        }
+    }
 }
 
 class Cache {
@@ -277,19 +356,25 @@ class Cache {
 const localDependenceCache = new Cache();
 const npmDependenceCache = new Cache();
 
-const cwd$1 = system.cwd;
-
 class NpmDependence extends Dependence {
     constructor(dependence) {
         super();
         this.localDependencies = {};
         this.npmDependencies = {};
         this.name = dependence;
-        this.src = path.resolve(cwd$1, system.sourceNodeModules, dependence);
-        this.dist = path.resolve(cwd$1, system.distNodeModules, dependence);
-        this.pkgInfo = Object.assign({
-            main: 'index.js'
-        }, require(path.join(this.src, './package.json')));
+        this.src = path.join(system.sourceNodeModules, dependence);
+        this.dist = path.join(system.distNodeModules, dependence);
+        this.distDir = path.dirname(this.dist);
+
+        const pkgPath = path.join(this.src, 'package.json');
+
+        if (fs.existsSync(pkgPath)) {
+            this.pkgInfo = Object.assign({
+                main: 'index.js'
+            }, require(pkgPath));
+        }
+
+        // Maybe there is not pkgInfo here
         this.main = this.resolveLocalDependence(this.name);
     }
 
@@ -302,6 +387,7 @@ class NpmDependence extends Dependence {
         const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
+            // ...system.babelConfig.options
         });
         traverse(ast, {
             enter: astNode => {
@@ -339,8 +425,10 @@ class NpmDependence extends Dependence {
         this.traverse(this.main);
         Object.values(this.localDependencies).map(localDependence => {
             const filePath = localDependence.filePath;
-            const dist = filePath.replace(this.src, this.dist);
-            const { code } = babel.transformFromAst(localDependence.ast);
+            const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules);
+            const { code } = babel.transformFromAst(localDependence.ast, null, {
+                compact: !system.devMode
+            });
             saveFile(dist, code);
         });
         this.updateNpmDependenceCache();
@@ -362,9 +450,15 @@ class NpmDependence extends Dependence {
         });
     }
 
+    /**
+     * 在 npm_modules 目录下均使用相对路径
+     * @param {*} npmDependence
+     * @param {*} filePath npm 模块【文件】路径
+     */
     resolveNpmDependence(npmDependence, filePath = this.main) {
+        const dist = path.relative(path.dirname(filePath), npmDependence.src);
         this.npmDependencies[npmDependence.name] = npmDependence;
-        return path.join(path.relative(path.dirname(filePath), npmDependence.src), npmDependence.pkgInfo.main);
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
     }
 
     updateNpmDependenceCache() {
@@ -387,7 +481,9 @@ class ScriptFile extends File {
 
     compile() {
         this.traverse();
-        this.compiledContent = babel.transformFromAst(this.$ast).code;
+        this.compiledContent = babel.transformFromAst(this.$ast, null, {
+            compact: !system.devMode
+        }).code;
         this.updateNpmDependenceCache();
         this.save();
         log.info(ACTIONS.COMPILE, this.src);
@@ -395,10 +491,10 @@ class ScriptFile extends File {
 
     traverse() {
         this.updateContent();
-        this.$ast = babel.transform(this.originalContent, {
+        this.$ast = babel.transform(this.originalContent, _extends({
             ast: true,
             babelrc: false
-        }).ast;
+        }, system.babelConfig.options)).ast;
 
         traverse(this.$ast, {
             enter: astNode => {
@@ -425,8 +521,9 @@ class ScriptFile extends File {
     }
 
     resolveNpmDependence(npmDependence) {
+        const dist = path.relative(this.distDir, npmDependence.dist);
         this.npmDependencies[npmDependence.name] = npmDependence;
-        return path.join(path.relative(this.distDir, npmDependence.dist), npmDependence.pkgInfo.main);
+        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
     }
 
     resolveLocalDependence(localDependence) {
@@ -440,82 +537,6 @@ class ScriptFile extends File {
                 npmDependence.compile();
             }
         });
-    }
-}
-
-var postcssWxImport = postcss.plugin('postcss-wximport', () => {
-    return root => {
-        root.walkAtRules('wximport', rule => {
-            rule.name = 'import';
-            rule.params = rule.params.replace(/\.\w+(?=['"]$)/, '.wxss');
-        });
-    };
-});
-
-const postcssConfig = {};
-
-var loader = {
-    sass({ file, content }) {
-        return sass.renderSync({
-            file,
-            data: content,
-            outputStyle: 'nested'
-        }).css;
-    },
-
-    scss(content) {
-        return this.sass(content);
-    },
-
-    async css({ file, content }) {
-        const config = await genPostcssConfig();
-        const root = await postcss(config.plugins.concat([postcssWxImport])).process(content, _extends({}, config.options, {
-            from: file
-        }));
-        fs.writeFileSync(system.cwd + '/postcss-ast.json', JSON.stringify(root, null, 4), 'utf-8');
-        return root.css;
-    }
-
-    // less (content) {
-    //     return content
-    // },
-    //
-    // wxss (content) {
-    //     return content
-    // }
-};
-
-function genPostcssConfig() {
-    return postcssConfig.plugins ? Promise.resolve(postcssConfig) : postcssrc({}).then(config => {
-        return Promise.resolve(Object.assign(postcssConfig, config));
-    });
-}
-
-class StyleFile extends File {
-    constructor(src) {
-        super(src);
-        this.type = FILE_TYPES.STYLE;
-        this.dist = path.join(this.distDir, `${this.name}.wxss`);
-    }
-
-    async compile() {
-        const parser = loader[this.ext];
-        if (parser) {
-            try {
-                this.updateContent();
-                this.compiledContent = await loader[this.ext]({
-                    file: this.src,
-                    content: this.originalContent.toString('utf8')
-                });
-                this.save();
-                log.info(ACTIONS.COMPILE, this.src);
-            } catch (err) {
-                log.error(ACTIONS.COMPILE, this.src, err.formatted || err);
-            }
-        } else {
-            copyFile(this.src, this.dist);
-            log.info(ACTIONS.COPY, this.src);
-        }
     }
 }
 
@@ -659,7 +680,7 @@ var init = {
     command: 'init [projectName]',
     alias: '',
     usage: '[projectName]',
-    description: '创建小程序页面',
+    description: '创建小程序项目',
     options: [['--repo']],
     on: {
         '--help'() {
@@ -684,6 +705,10 @@ var init = {
 };
 
 class BuildCommand {
+    constructor() {
+        system.devMode = false;
+    }
+
     addDependence(filePath) {
         const localDependence = new LocalDependence(filePath);
         if (!localDependenceCache.find(localDependence.src)) {
@@ -756,7 +781,7 @@ function commandInfo (infos = []) {
     }).join('\r\n');
 }
 
-const appConfigFile = path.join(system.cwd, './src/app.json');
+const appConfigFile = path.join(system.cwd, ankaConfig.sourceDir, './app.json');
 const customConfig = fs.existsSync(appConfigFile) ? require(appConfigFile) : {};
 
 const appConfig = Object.assign({
@@ -774,7 +799,7 @@ async function genPage(targetPage, options) {
     const pathArr = targetPage.split(path.sep);
     const name = pathArr.pop();
     const pagePath = path.join(pathArr.length === 0 ? targetPage : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', root || ankaConfig.pages, pagePath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, root || ankaConfig.pages, pagePath);
     const scriptFilePath = `${absolutePath}.js`;
     const jsonFilePath = `${absolutePath}.json`;
     const tplFilePath = `${absolutePath}.wxml`;
@@ -805,7 +830,7 @@ async function genPage(targetPage, options) {
     copy(path.resolve(__dirname, '../template/page/index.wxml'), tplFilePath, context);
     copy(path.resolve(__dirname, '../template/page/index.wxss'), styleFilePath, context);
     copy(path.resolve(__dirname, '../template/page/index.json'), jsonFilePath, context);
-    write(path.resolve(process.cwd(), './src/app.json'), JSON.stringify(appConfig, null, 4));
+    write(path.resolve(process.cwd(), ankaConfig.sourceDir, './app.json'), JSON.stringify(appConfig, null, 4));
 
     await save();
 
@@ -836,7 +861,7 @@ async function genComponent(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const scriptFilePath = `${absolutePath}.js`;
     const jsonFilePath = `${absolutePath}.json`;
     const tplFilePath = `${absolutePath}.wxml`;
@@ -878,9 +903,9 @@ async function genComponent$2(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), './src', `${page}.json`);
+    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
 
     if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
     if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
@@ -916,9 +941,9 @@ async function genComponent$3(targetComponent, options) {
     const pathArr = targetComponent.split(path.sep);
     const name = pathArr.pop();
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), './src', componentPath);
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
     const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), './src', `${page}.json`);
+    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
 
     if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
     if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
@@ -952,7 +977,7 @@ var removeComponent = {
 var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
-var version = "0.2.3";
+var version = "0.2.7";
 var description = "WeChat miniprogram helper";
 var bin = {
 	anka: "dist/index.js"
@@ -974,6 +999,7 @@ var homepage = "https://github.com/iException/anka";
 var dependencies = {
 	"await-to-js": "^2.0.1",
 	"babel-core": "^6.26.3",
+	"babel-load-config": "^1.0.0",
 	"babel-traverse": "^6.26.0",
 	cfonts: "^2.1.3",
 	chalk: "^2.4.1",

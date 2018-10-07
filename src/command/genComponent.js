@@ -8,7 +8,7 @@ async function genComponent (targetComponent, options) {
     const pathArr = targetComponent.split(path.sep)
     const name = pathArr.pop()
     const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name)
-    const absolutePath = path.join(process.cwd(), './src', componentPath)
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath)
     const scriptFilePath = `${absolutePath}.js`
     const jsonFilePath = `${absolutePath}.json`
     const tplFilePath = `${absolutePath}.wxml`

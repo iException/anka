@@ -11,7 +11,7 @@ async function genPage (targetPage, options) {
     const pathArr = targetPage.split(path.sep)
     const name = pathArr.pop()
     const pagePath = path.join(pathArr.length === 0 ? targetPage : pathArr.join(path.sep), name)
-    const absolutePath = path.join(process.cwd(), './src', root || ankaConfig.pages, pagePath)
+    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, root || ankaConfig.pages, pagePath)
     const scriptFilePath = `${absolutePath}.js`
     const jsonFilePath = `${absolutePath}.json`
     const tplFilePath = `${absolutePath}.wxml`
@@ -42,7 +42,7 @@ async function genPage (targetPage, options) {
     fileEditor.copy(path.resolve(__dirname, '../template/page/index.wxml'), tplFilePath, context)
     fileEditor.copy(path.resolve(__dirname, '../template/page/index.wxss'), styleFilePath, context)
     fileEditor.copy(path.resolve(__dirname, '../template/page/index.json'), jsonFilePath, context)
-    fileEditor.write(path.resolve(process.cwd(), './src/app.json'), JSON.stringify(appConfig, null, 4))
+    fileEditor.write(path.resolve(process.cwd(), ankaConfig.sourceDir, './app.json'), JSON.stringify(appConfig, null, 4))
 
     await fileEditor.save()
 

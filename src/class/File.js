@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import log from '../util/log'
-import {ACTIONS, FILE_TYPES} from '../config/types'
+import { ACTIONS, FILE_TYPES } from '../config/types'
 import { copyFile, saveFile } from '../util'
 import system from '../config'
 import Dependence from './Dependence'

@@ -1,9 +1,8 @@
-import File from './File'
-import {extractFileConfig} from '../util'
-import {FILE_TYPES} from '../config/types'
-import ScriptFile from './ScriptFile'
 import StyleFile from './StyleFile'
+import ScriptFile from './ScriptFile'
 import UnknownFile from './UnknownFile'
+import { extractFileConfig } from '../util'
+import { FILE_TYPES } from '../config/types'
 
 export default class LocalDependence {
     constructor (src) {
