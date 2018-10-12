@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import log from '../util/log'
 import commandInfo from '../util/commandInfo'
-import ankaConfig from '../config/ankaConfig'
+import ankaConfig from '../config/anka.config'
 import { appConfig } from '../config/projectConfig'
 import * as fileEditor from '../util/fileEditor'
 

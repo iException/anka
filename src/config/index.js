@@ -1,5 +1,5 @@
 import path from 'path'
-import ankaConfig from '../config/ankaConfig'
+import ankaConfig from './anka.config'
 import loader from 'babel-load-config'
 import buildConfigChain from 'babel-core/lib/transformation/file/options/build-config-chain'
 

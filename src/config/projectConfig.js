@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import system from '../config'
-import ankaConfig from './ankaConfig'
+import ankaConfig from './anka.config'
 
 const appConfigFile = path.join(system.cwd, ankaConfig.sourceDir, './app.json')
 const customConfig = fs.existsSync(appConfigFile) ? require(appConfigFile) : {}

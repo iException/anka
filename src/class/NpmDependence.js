@@ -7,6 +7,7 @@ import { saveFile } from '../util'
 import traverse from 'babel-traverse'
 import Dependence from './Dependence'
 import { ACTIONS } from '../config/types'
+import requireModule from '../util/resolveModule'
 import { npmDependenceCache } from '../util/cache'
 
 export class NpmDependence extends Dependence {
@@ -36,7 +37,7 @@ export class NpmDependence extends Dependence {
      * @param {string} filePath 依赖文件的绝对路径
      */
     traverse (filePath) {
-        if (this.localDependencies[filePath]) return
+        if (!filePath || this.localDependencies[filePath]) return
         const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
@@ -102,7 +103,7 @@ export class NpmDependence extends Dependence {
         if (path.parse(filePath).ext) {
             filePath = path.dirname(filePath)
         }
-        return require.resolve(localDependence, {
+        return requireModule(localDependence, {
             paths: [filePath]
         })
     }
@@ -113,7 +114,7 @@ export class NpmDependence extends Dependence {
      * @param {*} filePath npm 模块【文件】路径
      */
     resolveNpmDependence (npmDependence, filePath = this.main) {
-        const dist = path.relative(path.dirname(filePath), npmDependence.src)
+        const dist = path.relative(path.dirname(filePath), requireModule(npmDependence.src))
         this.npmDependencies[npmDependence.name] = npmDependence
         return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist
     }

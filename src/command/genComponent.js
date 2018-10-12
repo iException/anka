@@ -1,7 +1,7 @@
 import path from 'path'
 import log from '../util/log'
 import commandInfo from '../util/commandInfo'
-import ankaConfig from '../config/ankaConfig'
+import ankaConfig from '../config/anka.config'
 import * as fileEditor from '../util/fileEditor'
 
 async function genComponent (targetComponent, options) {
