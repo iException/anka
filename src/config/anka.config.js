@@ -6,8 +6,10 @@ const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json')
 const ankaConfig = {
     sourceDir: './src',
     outputDir: './dist',
+    ankaModulesDir: 'anka_modules',
     pages: './pages',
-    components: './components'
+    components: './components',
+    silent: false
 }
 
 if (fs.existsSync(ankaJsConfigPath)) {

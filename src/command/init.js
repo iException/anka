@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import log from '../util/log'
 import system from '../config'
-import ankaConfig from '../config/ankaConfig'
+import ankaConfig from '../config/anka.config'
 import downloadRepo from '../util/downloadRepe'
 
 export default {

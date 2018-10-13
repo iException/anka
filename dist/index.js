@@ -19,6 +19,8 @@ var postcssrc = _interopDefault(require('postcss-load-config'));
 var babel = _interopDefault(require('babel-core'));
 var traverse = _interopDefault(require('babel-traverse'));
 var download = _interopDefault(require('download-git-repo'));
+var npm = _interopDefault(require('npm'));
+var ncp = _interopDefault(require('ncp'));
 var cfonts = _interopDefault(require('cfonts'));
 var commander = _interopDefault(require('commander'));
 
@@ -73,8 +75,10 @@ const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
 const ankaConfig = {
     sourceDir: './src',
     outputDir: './dist',
+    ankaModulesDir: 'anka_modules',
     pages: './pages',
-    components: './components'
+    components: './components',
+    silent: false
 };
 
 if (fs.existsSync(ankaJsConfigPath)) {
@@ -210,11 +214,19 @@ function watch(dir, options = {}) {
     }, options));
 }
 
+function requireModule (...params) {
+    try {
+        return require.resolve(...params);
+    } catch (err) {
+        !ankaConfig.silent && log.error('Missing dependency', params[0], err);
+    }
+}
+
 class Dependence {
     isNpmDependence(dependence) {
         if (/^(@|[A-Za-z0-1])/.test(dependence)) {
             const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence);
-            if (fs.existsSync(dependencePath) || fs.existsSync(require.resolve(dependencePath))) {
+            if (fs.existsSync(dependencePath) || fs.existsSync(requireModule(dependencePath))) {
                 return true;
             }
         }
@@ -383,7 +395,7 @@ class NpmDependence extends Dependence {
      * @param {string} filePath 依赖文件的绝对路径
      */
     traverse(filePath) {
-        if (this.localDependencies[filePath]) return;
+        if (!filePath || this.localDependencies[filePath]) return;
         const { ast } = babel.transformFileSync(filePath, {
             ast: true,
             babelrc: false
@@ -445,7 +457,7 @@ class NpmDependence extends Dependence {
         if (path.parse(filePath).ext) {
             filePath = path.dirname(filePath);
         }
-        return require.resolve(localDependence, {
+        return requireModule(localDependence, {
             paths: [filePath]
         });
     }
@@ -456,7 +468,7 @@ class NpmDependence extends Dependence {
      * @param {*} filePath npm 模块【文件】路径
      */
     resolveNpmDependence(npmDependence, filePath = this.main) {
-        const dist = path.relative(path.dirname(filePath), npmDependence.src);
+        const dist = path.relative(path.dirname(filePath), requireModule(npmDependence.src));
         this.npmDependencies[npmDependence.name] = npmDependence;
         return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
     }
@@ -773,6 +785,96 @@ var build = {
     }
 };
 
+class Installer {
+    constructor(packages) {
+        this.packages = packages;
+        this.ankaModulesDir = path.join(system.cwd, ankaConfig.outputDir, ankaConfig.ankaModulesDir);
+    }
+
+    init() {
+        // this.config = JSON.parse(fs.readFileSync(__dirname + LIB_CONFIG, 'utf8'))
+        // let ankaModulesDir = `${process.cwd()}` + this.config.installPath
+        // if (!fs.existsSync(ankaModulesDir)) {
+        //     fs.mkdirSync(ankaModulesDir)
+        // }
+        fs.ensureDirSync(this.ankaModulesDir);
+
+        return new Promise(resolve => {
+            npm.load(error => {
+                error ? process.exit(1) : resolve();
+            });
+        });
+    }
+
+    async install() {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            npm.commands.install(this.packages, (error, data) => {
+                error ? reject(error) : resolve(data);
+            });
+        });
+    }
+
+    async uninstall() {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            npm.commands.uninstall(this.packages, (error, data) => {
+                error ? reject(error) : resolve(data);
+            });
+        });
+    }
+
+    inject(paths) {
+        return Promise.all(paths.map(item => {
+            const pkgName = item[0].replace(/@(\d+\.?)+/, '');
+            const componentPath = path.join(item[1]);
+            const dest = path.join(this.ankaModulesDir, pkgName);
+            const pkg = readJSON(path.join(system.cwd, 'package.json'), {});
+
+            fs.ensureDirSync(dest);
+            ncp(`${componentPath}/`, dest, function (err) {
+                if (err) {
+                    return console.error(err);
+                }
+            });
+
+            if (pkg && pkg.anka && pkg.anka.type === 'component') {
+                fs.ensureDirSync(dest);
+                ncp(`${componentPath}/*
+                */*`, dest, function (err) {
+                    if (err) {
+                        throw err;
+                    }
+                });
+            }
+        }));
+    }
+}
+
+var install = {
+    command: 'install [module] [otherModules...]',
+    alias: '',
+    description: '安装小程序模块',
+    on: {
+        '--help'() {
+            console.log(`
+                install [module] 安装模块
+            `);
+        }
+    },
+    async action(module, otherModules) {
+        const modules = [module, ...otherModules];
+        const installer = new Installer(modules);
+
+        try {
+            const pkgs = await installer.install();
+            await installer.inject(pkgs);
+        } catch (err) {
+            log.error('Install', '模块安装失败', err);
+        }
+    }
+};
+
 const space = '  ';
 
 function commandInfo (infos = []) {
@@ -974,7 +1076,7 @@ var removeComponent = {
     }
 };
 
-var commands = [init, dev, build, genPage$1, genComponent$1, addComponent, removeComponent];
+var commands = [init, dev, build, genPage$1, install, genComponent$1, addComponent, removeComponent];
 
 var name = "@anka-dev/cli";
 var version = "0.2.7";
@@ -1012,7 +1114,9 @@ var dependencies = {
 	inquirer: "^5.2.0",
 	"mem-fs": "^1.1.3",
 	"mem-fs-editor": "^5.1.0",
+	ncp: "^2.0.0",
 	"node-sass": "^4.9.3",
+	npm: "^6.4.1",
 	ora: "^3.0.0",
 	postcss: "^7.0.2",
 	"postcss-load-config": "^2.0.0"
