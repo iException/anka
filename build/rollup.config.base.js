@@ -1,11 +1,12 @@
 import json from 'rollup-plugin-json'
-import babel from 'rollup-plugin-babel'
-import { eslint } from 'rollup-plugin-eslint'
+import ts from 'rollup-plugin-typescript'
+import tslint from 'rollup-plugin-tslint'
+import typescript from 'rollup-plugin-typescript'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 
 export default {
-    input: './src/index.js',
+    input: './src/index.ts',
     output: {
         file: 'dist/index.js',
         format: 'cjs',
@@ -15,12 +16,11 @@ export default {
         return !id.startsWith('.') && !id.startsWith('/') && !id.startsWith('\0')
     },
     plugins: [
-        resolve(),
-        commonjs(),
         json(),
-        eslint(),
-        babel({
-            exclude: 'node_modules/**'
-        })
+        ts({
+            typescript
+        }),
+        resolve(),
+        commonjs()
     ]
 }
