@@ -1,3 +1,3 @@
-export { default as Anka } from './Anka'
-export { default as Command } from './Command'
+export { default as Compiler } from './class/Compiler'
+export { default as Command } from './class/Command'
 

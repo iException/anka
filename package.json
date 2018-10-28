@@ -20,6 +20,7 @@
     },
     "homepage": "https://github.com/iException/anka",
     "dependencies": {
+        "@types/glob": "^7.1.1",
         "await-to-js": "^2.0.1",
         "babel-core": "^6.26.3",
         "babel-load-config": "^1.0.0",
@@ -41,6 +42,7 @@
         "ora": "^3.0.0",
         "postcss": "^7.0.2",
         "postcss-load-config": "^2.0.0",
+        "replace-ext": "^1.0.0",
         "rollup-plugin-tslint": "^0.1.35",
         "rollup-plugin-typescript": "^1.0.0",
         "typescript": "^3.1.3"
@@ -50,6 +52,7 @@
         "@types/commander": "^2.12.2",
         "@types/fs-extra": "^5.0.4",
         "@types/ora": "^1.3.4",
+        "@types/replace-ext": "0.0.27",
         "babel-plugin-external-helpers": "^6.22.0",
         "babel-plugin-transform-object-rest-spread": "^6.26.0",
         "babel-preset-env": "^1.7.0",

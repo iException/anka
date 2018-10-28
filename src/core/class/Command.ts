@@ -1,4 +1,4 @@
-import Anka from "./Anka";
+import Compiler from './Compiler'
 
 export default abstract class Command {
     public command: string
@@ -7,7 +7,7 @@ export default abstract class Command {
     public usage: string
     public description: string
     public examples: Array<string>
-    public $anka: Anka
+    public $compiler: Compiler
 
     constructor (command: string) {
         this.command = command
@@ -16,7 +16,7 @@ export default abstract class Command {
         this.usage = ''
         this.description = ''
         this.examples = []
-        this.$anka = null
+        this.$compiler = null
     }
 
     abstract action (param: string | Array<string>, options: Object): Promise<any> | void
@@ -25,7 +25,7 @@ export default abstract class Command {
      * Initialize anka core compiler
      */
     protected initCompiler (): void {
-        this.$anka = new Anka()
+        this.$compiler = new Compiler()
     }
 
     protected setUsage (usage: string): void {

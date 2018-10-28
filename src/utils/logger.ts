@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import ora from 'ora'
+import * as ora from 'ora'
 
 export function toFix (number: number): string {
     return ('00' + number).slice(-2)
@@ -34,7 +34,7 @@ export class Logger {
         console.log(err)
     }
 
-    info (title: string = '', msg: string) {
+    info (title: string = '', msg: string = '') {
         this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg))
     }
 

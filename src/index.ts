@@ -1,6 +1,6 @@
 /// <reference path="..//types/index.d.ts" />
 
-import cfonts from 'cfonts'
+import * as cfonts from 'cfonts'
 import log from './util/log'
 import * as commander from 'commander'
 import commands from './commands'

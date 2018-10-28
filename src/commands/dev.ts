@@ -15,6 +15,6 @@ export default class DevCommand extends Command {
 
     action (pages: Array<string>, options: DevCommandOpts) {
         this.initCompiler()
-        this.$anka.emit('after-init', )
+        this.$compiler.emit('after-init', {})
     }
 }
