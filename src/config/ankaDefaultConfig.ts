@@ -1,4 +1,11 @@
 import * as path from 'path'
+import fileParser from '../parsers/fileParser'
+import scriptParser from '../parsers/scriptParser'
+import styleParser from '../parsers/styleParser'
+import templateParser from '../parsers/templateParser'
+import saveFilePlugin from '../plugins/saveFilePlugin'
+import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
+
 
 /*****************************************************
  *                   Danger zone
@@ -46,15 +53,48 @@ export const silent = false
 export const devMode = false
 
 /**
- * Register file loader.
+ * Register file parser.
  */
-export const module: Array<LoaderOption> = []
+export const parsers: ParsersConfigration = [
+    {
+        match: /.*\.(js|es)$/,
+        parsers: [
+            {
+                parser: scriptParser,
+                options: {}
+            }
+        ]
+    },
+    {
+        match: /.*\.(wxss|css|postcss)$/,
+        parsers: [
+            {
+                parser: styleParser,
+                options: {}
+            }
+        ]
+    }
+]
 
 /**
  * Whether to output debug information.
  * @default false
  */
 export const debug = false
+
+/**
+ * Register plugin.
+ */
+export const plugins: PluginsConfigration = [
+    {
+        plugin: extractDependencyPlugin,
+        options: {}
+    },
+    {
+        plugin: saveFilePlugin,
+        options: {}
+    }
+]
 
 
 /*****************************************************

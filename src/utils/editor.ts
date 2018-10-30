@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra'
 import * as glob from 'glob'
+import { File } from '../core'
 
 export function readFile (sourceFilePath: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
@@ -13,9 +14,9 @@ export function readFile (sourceFilePath: string): Promise<Buffer> {
     })
 }
 
-export function writeFile (targetFilePath: string, data: Content): Promise<undefined> {
+export function writeFile (targetFilePath: string, content: Content): Promise<undefined> {
     return new Promise((resolve, reject) => {
-        fs.writeFile(targetFilePath, data, err => {
+        fs.writeFile(targetFilePath, content, err => {
             if (err) throw err
             resolve()
         })

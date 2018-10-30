@@ -1,9 +1,12 @@
 /// <reference path="..//types/index.d.ts" />
+/// <reference path="..//types/cfonts.d.ts" />
 
 import * as cfonts from 'cfonts'
-import log from './util/log'
+import { logger } from './utils'
 import * as commander from 'commander'
 import commands from './commands'
+
+
 
 const pkgJson = require('../package.json')
 
@@ -31,7 +34,7 @@ commands.forEach(command => {
     }
 
     if (command.options) {
-        command.options.forEach(option => {
+        command.options.forEach((option: [any, any, any, any]) => {
             cmd.option(...option)
         })
     }
@@ -41,7 +44,7 @@ commands.forEach(command => {
             try {
                 await command.action(...args)
             } catch (err) {
-                log.error(err.message || '')
+                logger.error(err.message || '')
                 console.log(err)
             }
         })

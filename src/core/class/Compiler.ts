@@ -5,7 +5,6 @@ import File from './File'
 import Compilation from './Compilation'
 import config from '../../config'
 import * as utils from '../../utils'
-import { log } from 'util';
 
 /**
  * The core complier
@@ -15,11 +14,11 @@ export default class Compiler {
     public static compilationId = 1
     public static compilationPool = new Map<string, Compilation>()
     plugins: {
-        [eventName: string]: Array<Plugin>
+        [eventName: string]: Array<PluginHandler>
     }
-    loaders: {
+    parsers: {
         test: RegExp,
-        loaders: Array<Loader>
+        parsers: Array<Parser>
     }
 
     constructor () {
@@ -29,16 +28,29 @@ export default class Compiler {
             console.log(this.config)
         }
 
-        this.initLoaders()
+        this.initParsers()
         this.initPlugins()
     }
 
-    on (event: string, handler: (c: Compilation) => void): void {
-
+    on (event: string, handler: PluginHandler): void {
+        this.plugins[event].push(handler)
     }
 
-    emit (event: string, compilation: Compilation): void {
+    async emit (event: string, compilation: Compilation): Promise<any> {
+        const plugins = this.plugins[event]
 
+        if (!plugins || !plugins.length) return
+
+        const tasks = plugins.map(handler => {
+            return new Promise
+        })
+
+        await new Promise((resolve, reject) => {
+            for (let i = 0; i < plugins.length; i++) {
+                plugins[i](compilation, )
+            }
+            resolve()
+        })
     }
 
     async launch (): Promise<any> {
@@ -61,7 +73,7 @@ export default class Compiler {
 
 
 
-    initLoaders (): void {
+    initParsers (): void {
 
     }
 

@@ -7,7 +7,7 @@ var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
 var fs = _interopDefault(require('fs-extra'));
 var path = _interopDefault(require('path'));
-var loader = _interopDefault(require('babel-load-config'));
+var parser = _interopDefault(require('babel-load-config'));
 var buildConfigChain = _interopDefault(require('babel-core/lib/transformation/file/options/build-config-chain'));
 var glob = _interopDefault(require('glob'));
 var memFs = _interopDefault(require('mem-fs'));
@@ -98,7 +98,7 @@ var system = {
     distNodeModules: path.resolve(cwd, './dist/npm_modules'),
     sourceNodeModules: path.resolve(cwd, './node_modules'),
     scaffold: 'direct:https://github.com/iException/anka-quickstart',
-    babelConfig: loader(cwd, buildConfigChain)
+    babelConfig: parser(cwd, buildConfigChain)
 };
 
 const FILE_TYPES = {
@@ -278,7 +278,7 @@ var postcssWxImport = postcss.plugin('postcss-wximport', () => {
 
 const postcssConfig = {};
 
-var loader$1 = {
+var parser$1 = {
     sass({ file, content }) {
         return sass.renderSync({
             file,
@@ -322,11 +322,11 @@ class StyleFile extends File {
     }
 
     async compile() {
-        const parser = loader$1[this.ext];
+        const parser = parser$1[this.ext];
         if (parser) {
             try {
                 this.updateContent();
-                this.compiledContent = await loader$1[this.ext]({
+                this.compiledContent = await parser$1[this.ext]({
                     file: this.src,
                     content: this.originalContent.toString('utf8')
                 });

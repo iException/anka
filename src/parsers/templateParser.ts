@@ -1,9 +1,13 @@
+
 import * as path from 'path'
 import config from '../config'
 import File from '../core/class/File'
-import Compilation from '../core/class/Compilation'
 
-export default function (this: Compilation, file: File, options: LoaderOption) {
-    this.resourceType = RESOURCE_TYPE.OTHER
+
+/**
+ * Template file parser.
+ * @for .wxml .html => .wxml
+ */
+export default <Parser>function (this: ParserInjection, file: File, callback: Function) {
     file.targetFile = file.targetFile.replace(config.srcDir, config.distDir)
 }

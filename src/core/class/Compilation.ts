@@ -15,7 +15,7 @@ export default class Compilation {
     // targetFile: string
     // ast: Object | undefined
     resourceType: RESOURCE_TYPE
-    loaders: Array<Loader>
+    parsers: Array<Parser>
 
     // Status，
     destroyed: boolean
@@ -35,27 +35,31 @@ export default class Compilation {
         this.register()
     }
 
-    // run () {
-    //     this.parse()
-    // }
-
-    // parse () {
-    //     this.loadFile()
-    //     this.invokeLoaders()
-    // }
-
-    invokeLoaders () {
-        this.compiler.emit('before-parse', this)
-        // TODO: Loader only excutes once
-        this.compiler.emit('after-parse', this)
+    async run (): Promise<void> {
+        await this.loadFile()
+        await this.invokeParsers()
+        await this.compile()
     }
 
-    async loadFile () {
+    async loadFile (): Promise<void> {
+        this.compiler.emit('before-load-file', this)
         if (!(this.file instanceof File)) {
             this.file = await utils.createFile(this.sourceFile)
         }
         this.compiler.emit('after-load-file', this)
     }
+
+    async invokeParsers (): Promise<void> {
+        await this.compiler.emit('before-parse', this)
+        // TODO: Parser only excutes once
+        await this.compiler.emit('after-parse', this)
+    }
+
+    async compile (): Promise<void> {
+        await this.compiler.emit('compile', this)
+        await this.compiler.emit('completed', this)
+    }
+
 
     /**
      * Register on Compiler and destroy the previous one if conflict arises.

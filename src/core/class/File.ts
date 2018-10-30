@@ -1,14 +1,7 @@
-
 import * as path from 'path'
+import * as acorn from 'acorn'
 import config from '../../config'
 import replaceExt = require('replace-ext')
-
-export type FileConstructorOption = {
-    sourceFile: string
-    content: Content
-    ast?: object
-    targetFile?: object
-}
 
 export default class File {
     public sourceFile: string
@@ -17,14 +10,14 @@ export default class File {
     public ast?: object
     public sourceMap?: Content
 
-
     constructor (option: FileConstructorOption) {
         if (!this.sourceFile) throw new Error('invalid value: FileConstructorOption.sourceFile')
         if (!this.content) throw new Error('invalid value: FileConstructorOption.content')
 
         this.sourceFile = option.sourceFile
-        this.targetFile = option.sourceFile.replace(config.srcDir, config.distDir) // Default value
+        this.targetFile = option.targetFile || option.sourceFile.replace(config.srcDir, config.distDir) // Default value
         this.content = option.content
+        this.sourceMap = option.sourceMap
     }
 
     get dirname () {
@@ -39,13 +32,14 @@ export default class File {
         return path.extname(this.sourceFile)
     }
 
-    saveTo (path: string) {
+    saveTo (path: string): void {
+        // TODO
         if (!path) {
             throw new Error('Invalid path')
         }
     }
 
-    updateExt (ext: string) {
+    updateExt (ext: string): void {
         this.targetFile = replaceExt(this.targetFile, ext)
     }
 }
