@@ -1,56 +1,66 @@
 import {
     logger
 } from '../../utils'
+import {
+    ParserInjection,
+    PluginInjection
+} from './Injection'
 import File from './File'
-import Compilation from './Compilation'
 import config from '../../config'
 import * as utils from '../../utils'
+import Compilation from './Compilation'
+import callPromiseInChain from '../../utils/callPromiseInChain'
+import asyncFunctionWrapper from '../../utils/asyncFunctionWrapper'
 
 /**
  * The core complier
  */
 export default class Compiler {
-    readonly config: object
+    readonly config: CompilerConfig
     public static compilationId = 1
     public static compilationPool = new Map<string, Compilation>()
     plugins: {
         [eventName: string]: Array<PluginHandler>
-    }
-    parsers: {
-        test: RegExp,
+    } = {}
+    parsers: Array<{
+        match: RegExp,
         parsers: Array<Parser>
-    }
+    }> = []
 
     constructor () {
         this.config = config
-
-        if (config.ankaConfig.debug) {
-            console.log(this.config)
-        }
-
         this.initParsers()
         this.initPlugins()
+
+        if (config.ankaConfig.debug) {
+            console.log(JSON.stringify(this.config, null, 4))
+        }
     }
 
+    /**
+     * Register Plugin.
+     * @param event
+     * @param handler
+     */
     on (event: string, handler: PluginHandler): void {
         this.plugins[event].push(handler)
     }
 
+    /**
+     * Invoke lifecycle hooks(Promise chaining).
+     * @param event
+     * @param compilation
+     */
     async emit (event: string, compilation: Compilation): Promise<any> {
         const plugins = this.plugins[event]
 
         if (!plugins || !plugins.length) return
 
-        const tasks = plugins.map(handler => {
-            return new Promise
+        const tasks = plugins.map(plugin => {
+            return asyncFunctionWrapper(plugin)
         })
 
-        await new Promise((resolve, reject) => {
-            for (let i = 0; i < plugins.length; i++) {
-                plugins[i](compilation, )
-            }
-            resolve()
-        })
+        await callPromiseInChain(tasks, compilation)
     }
 
     async launch (): Promise<any> {
@@ -67,17 +77,31 @@ export default class Compiler {
     }
 
     generateCompilation (file: File) {
-        const compilation = new Compilation(file, this.config, this)
-        return compilation
+        return new Compilation(file, this.config, this)
     }
 
-
-
     initParsers (): void {
-
+        this.config.ankaConfig.parsers.forEach(({ match, parsers }) => {
+            this.parsers.push({
+                match,
+                parsers: parsers.map(({ parser, options }) => {
+                    return parser.bind(this.generateParserInjection(options))
+                })
+            })
+        })
     }
 
     initPlugins (): void {
+        this.config.ankaConfig.plugins.forEach(({ plugin, options }) => {
+            plugin.call(this.generatePluginInjection(options))
+        })
+    }
 
+    generatePluginInjection (options: PluginOptions['options']): PluginInjection {
+        return new PluginInjection(this, options)
+    }
+
+    generateParserInjection (options: ParserOptions['options']): ParserInjection {
+        return new ParserInjection(this, options)
     }
 }

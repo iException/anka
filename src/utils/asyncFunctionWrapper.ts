@@ -1,8 +1,8 @@
-function wrapper(fn: (cb?: Function) => any, ...params: Array<any>) {
-    const limitation = params.length
+export default function wrapper(fn: Function) {
+    return function (...params: Array<any>) {
+        const limitation = params.length
 
-    return function () {
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             if (fn.length > limitation) {
                 fn(...params, resolve)
             } else {

@@ -1,3 +1,6 @@
+import {
+    ParserInjection
+} from './Injection'
 import File from './File'
 import config from '../../config'
 import Compiler from './Compiler'
@@ -6,8 +9,8 @@ import * as utils from '../../utils'
 /**
  * A compilation task
  */
-export default class Compilation {
-    readonly config: object
+export default class Compilations {
+    config: object
     readonly compiler: Compiler
     id: number        // Unique，for each Compilation
     file: File
@@ -42,11 +45,11 @@ export default class Compilation {
     }
 
     async loadFile (): Promise<void> {
-        this.compiler.emit('before-load-file', this)
+        await this.compiler.emit('before-load-file', this)
         if (!(this.file instanceof File)) {
             this.file = await utils.createFile(this.sourceFile)
         }
-        this.compiler.emit('after-load-file', this)
+        await this.compiler.emit('after-load-file', this)
     }
 
     async invokeParsers (): Promise<void> {
@@ -60,11 +63,10 @@ export default class Compilation {
         await this.compiler.emit('completed', this)
     }
 
-
     /**
      * Register on Compiler and destroy the previous one if conflict arises.
      */
-    register () {
+    register (): void {
         const oldCompilation = Compiler.compilationPool.get(this.sourceFile)
 
         if (oldCompilation) {
@@ -78,7 +80,7 @@ export default class Compilation {
     /**
      * Unregister themselves from Compiler.
      */
-    destroy () {
+    destroy (): void {
         this.destroyed = true
         Compiler.compilationPool.delete(this.sourceFile)
     }

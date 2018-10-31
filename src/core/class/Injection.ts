@@ -1,6 +1,18 @@
 import config from '../../config'
+import Compiler from './Compiler'
+import Compilation from './Compilation'
 
-export class Injection {
+export abstract class Injection {
+    compiler: Compiler
+    options: object
+
+    constructor (compiler: Compiler, options?: object) {
+        this.compiler = compiler
+        this.options = options
+    }
+
+    abstract getOptions (): object
+
     getAnkaConfig (): object {
         return config.ankaConfig
     }
@@ -15,11 +27,16 @@ export class Injection {
 }
 
 export class PluginInjection extends Injection {
-    compiler: Compiler
 
-    constructor (compiler: Compiler) {
-        super()
-        this.compiler = compiler
+    constructor (compiler: Compiler, options: PluginOptions['options']) {
+        super(compiler, options)
+    }
+
+    /**
+     * Return Plugin options
+     */
+    getOptions (): object {
+        return this.options || {}
     }
 
     on (event: string, handler: PluginHandler): void {
@@ -28,10 +45,15 @@ export class PluginInjection extends Injection {
 }
 
 export class ParserInjection extends Injection {
-    compilation: Compilation
 
-    constructor (compilation: Compilation) {
-        super()
-        this.compilation = compilation
+    /**
+     * Return ParserOptions
+     */
+    getOptions (): object {
+        return this.options || {}
+    }
+
+    constructor (compiler: Compiler, options: ParserOptions['options']) {
+        super(compiler, options)
     }
 }

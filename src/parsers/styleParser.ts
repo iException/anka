@@ -2,6 +2,6 @@
  * Style file parser.
  * @for .wxss .css => .wxss
  */
-export default <Parser>function (this: ParserInjection, file: File, cb: Function): void {
+export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, cb: Function): void {
 
 }

@@ -1,4 +1,70 @@
+declare type CompilerConfig = {
+    cwd: string
+    srcDir: string
+    distDir: string
+    ankaModules: string
+    distNodeModules: string
+    sourceNodeModules: string
+    defaultScaffold: string
+    ankaConfig: AnkaConfig
+    projectConfig: ProjectConfig
+}
 
+declare type AnkaConfig = {
+     /**
+     * The path where WeChat miniprogram source files exist.
+     * @default './src'
+     */
+    sourceDir: string
+
+    /**
+     * The path where WeChat miniprogram compiled files exist.
+     * @default './dist'
+     */
+    outputDir: string
+
+    /**
+     * The path where WeChat miniprogram pages exist.
+     * @default './src/pages'
+     */
+    pages: string
+
+    /**
+     * The path where WeChat miniprogram components exist.
+     * @default './src/components'
+     */
+    components: string
+
+    /**
+     * Whether to output compile information.
+     * @default false
+     */
+    silent: boolean
+
+    /**
+     * Anka development mode.
+     * @default false
+     */
+    devMode: boolean
+
+    /**
+     * Register file parser.
+     */
+    parsers: ParsersConfigration
+
+    /**
+     * Whether to output debug information.
+     * @default false
+     */
+    debug: boolean
+
+    /**
+     * Register plugin.
+     */
+    plugins: PluginsConfigration
+}
+
+declare type ProjectConfig = object
 
 declare type MatcherOptions = {
     match: RegExp,
@@ -15,13 +81,13 @@ declare type PluginOptions = {
     options?: object
 }
 
-declare type PluginsConfigration = Array<PluginOptions>
+declare type PluginsConfigration = PluginOptions[]
 
-declare type ParsersConfigration = Array<MatcherOptions>
+declare type ParsersConfigration = MatcherOptions[]
 
 declare type Content = string | Buffer
 
-declare type Parser = (this: ParserInjection, file: File, cb: Function) => void
+declare type Parser = (this: ParserInjection, file: File, compilation: Compilation, cb: Function) => void
 declare type Plugin = (this: PluginInjection) => void
 declare type PluginHandler = (compilation: Compilation, cb?: Function) => void
 
@@ -31,7 +97,7 @@ declare class Compiler {
     public static compilationPool: Map<string, Compilation>
 
     plugins: {
-        [eventName: string]: Array<Plugin>
+        [eventName: string]: Array<PluginHandler>
     }
     parsers: {
         test: RegExp,
@@ -49,21 +115,25 @@ declare class Compiler {
     initParsers (): void
 
     initPlugins (): void
+
+    generatePluginInjection (options: PluginOptions['options']): PluginInjection
+
+    generateParserInjection (options: ParserOptions['options']): ParserOptions
 }
 
 declare class Compilation {
-    readonly config: object
+    config: object
     readonly compiler: Compiler
     id: number        // Unique，for each Compilation
     file: File
     sourceFile: string
-    // targetFile: string
-    // ast: Object | undefined
     resourceType: RESOURCE_TYPE
     parsers: Array<Parser>
 
     // Status，
     destroyed: boolean
+
+    new (file: File | string, conf: object, compiler: Compiler): Compilation
 
     run (): Promise<void>
 
@@ -116,6 +186,8 @@ declare class Injection {
 }
 
 declare class ParserInjection extends Injection {
+    new (compiler: Compiler, options: ParserOptions['options']): ParserInjection
+
     /**
      * Return parser options
      */
@@ -123,6 +195,8 @@ declare class ParserInjection extends Injection {
 }
 
 declare class PluginInjection extends Injection {
+    new (compiler: Compiler, options: PluginOptions['options']): Compiler
+
     /**
      * Return plugin options
      */

@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "umd",
+        "module": "commonjs",
         "alwaysStrict": true,
         "noImplicitAny": true,
         "removeComments": true,
