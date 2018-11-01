@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import * as ora from 'ora'
+import ora = require('ora')
 
 export function toFix (number: number): string {
     return ('00' + number).slice(-2)

@@ -1,10 +1,10 @@
-import * as path from 'path'
-import * as fs from 'fs-extra'
-import * as utils from '../utils'
-import * as system from './systemConfig'
+import path = require('path')
+import fs = require('fs-extra')
 import ankaConfig from './ankaConfig'
+import * as system from './systemConfig'
+import resolveConfig from '../utils/resolveConfig'
 
-const customConfig = utils.resolveConfig(['app.json'], system.srcDir)
+const customConfig = resolveConfig(['app.json'], system.srcDir)
 
 export default Object.assign({
     pages: [],

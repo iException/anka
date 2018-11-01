@@ -115,6 +115,8 @@ declare class Compiler {
 
     launch (): Promise<any>
 
+    watchFiles (): void
+
     generateCompilation (file: File): Compilation
 
     initParsers (): void

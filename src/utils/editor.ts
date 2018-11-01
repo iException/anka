@@ -1,6 +1,5 @@
-import * as fs from 'fs-extra'
-import * as glob from 'glob'
-import { File } from '../core'
+import fs = require('fs-extra')
+import glob = require('glob')
 
 export function readFile (sourceFilePath: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {

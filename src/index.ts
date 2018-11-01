@@ -1,12 +1,7 @@
-/// <reference path="..//types/index.d.ts" />
-/// <reference path="..//types/cfonts.d.ts" />
-
-import * as cfonts from 'cfonts'
 import { logger } from './utils'
-import * as commander from 'commander'
 import commands from './commands'
-
-
+import cfonts = require('cfonts')
+import commander = require('commander')
 
 const pkgJson = require('../package.json')
 
@@ -59,3 +54,5 @@ if (process.argv.length === 2) {
 }
 
 commander.parse(process.argv)
+
+export default Compiler

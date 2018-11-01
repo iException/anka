@@ -1,4 +1,4 @@
-export default function wrapper(fn: Function) {
+export default function (fn: Function) {
     return function (...params: Array<any>) {
         const limitation = params.length
 

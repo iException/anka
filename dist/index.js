@@ -3,1201 +3,712 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var ora = _interopDefault(require('ora'));
 var chalk = _interopDefault(require('chalk'));
-var fs = _interopDefault(require('fs-extra'));
-var path = _interopDefault(require('path'));
-var parser = _interopDefault(require('babel-load-config'));
-var buildConfigChain = _interopDefault(require('babel-core/lib/transformation/file/options/build-config-chain'));
-var glob = _interopDefault(require('glob'));
-var memFs = _interopDefault(require('mem-fs'));
-var chokidar = _interopDefault(require('chokidar'));
-var memFsEditor = _interopDefault(require('mem-fs-editor'));
-var postcss = _interopDefault(require('postcss'));
-var sass = _interopDefault(require('node-sass'));
-var postcssrc = _interopDefault(require('postcss-load-config'));
-var babel = _interopDefault(require('babel-core'));
-var traverse = _interopDefault(require('babel-traverse'));
-var download = _interopDefault(require('download-git-repo'));
-var npm = _interopDefault(require('npm'));
-var ncp = _interopDefault(require('ncp'));
-var cfonts = _interopDefault(require('cfonts'));
-var commander = _interopDefault(require('commander'));
+var tslib_1 = require('tslib');
 
-function toFix(number) {
-    return ('00' + number).slice(-2);
-}
-
-function getCurrentTime() {
-    const now = new Date();
-    return `${toFix(now.getHours())}:${toFix(now.getMinutes())}:${toFix(now.getSeconds())}`;
-}
-
-var log = {
-    oraInstance: null,
-
-    loading(msg) {
-        this.oraInstance = ora(msg).start();
-    },
-
-    stop() {
-        this.oraInstance && this.oraInstance.stop();
-    },
-
-    time() {
-        return chalk.grey(`[${getCurrentTime()}]`);
-    },
-
-    log(...msg) {
-        return console.log(this.time(), ...msg);
-    },
-
-    error(title = '', msg = '', err = '') {
-        this.log('\r\n', chalk.red('✘'), chalk.reset(title), chalk.grey(msg));
-        console.log('\r\n', err);
-    },
-
-    info(title = '', msg) {
-        this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg));
-    },
-
-    warn(title = '', msg = '') {
-        this.log(chalk.yellow('⚠'), chalk.reset(title), chalk.grey(msg));
-    },
-
-    success(title = '', msg = '') {
-        this.log(chalk.green('✔'), chalk.reset(title), chalk.grey(msg));
-    }
-};
-
-const ankaJsConfigPath = path.join(process.cwd(), 'anka.config.js');
-const ankaJsonConfigPath = path.join(process.cwd(), 'anka.config.json');
-const ankaConfig = {
-    sourceDir: './src',
-    outputDir: './dist',
-    ankaModulesDir: 'anka_modules',
-    pages: './pages',
-    components: './components',
-    silent: false
-};
-
-if (fs.existsSync(ankaJsConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsConfigPath));
-} else if (fs.existsSync(ankaJsonConfigPath)) {
-    Object.assign(ankaConfig, require(ankaJsonConfigPath));
-}
-
-const cwd = process.cwd();
-
-var system = {
-    // 开发模式
-    cwd,
-    devMode: true,
-    srcDir: path.resolve(cwd, ankaConfig.sourceDir),
-    distDir: path.resolve(cwd, ankaConfig.outputDir),
-    distNodeModules: path.resolve(cwd, './dist/npm_modules'),
-    sourceNodeModules: path.resolve(cwd, './node_modules'),
-    scaffold: 'direct:https://github.com/iException/anka-quickstart',
-    babelConfig: parser(cwd, buildConfigChain)
-};
-
-const FILE_TYPES = {
-    STYLE: 'style',
-    SCRIPT: 'script',
-    TPL: 'tpl',
-    JSON: 'json',
-    UNKNOWN: 'unknown'
-};
-
-const ACTIONS = {
-    COMPILE: '编译',
-    WATCH: '监听',
-    REMOVE: '移除',
-    READY: '就绪',
-    COPY: '拷贝'
-};
-
-function copyFile(src, dist) {
-    if (path.parse(dist).ext) {
-        fs.ensureFileSync(dist);
-    } else {
-        fs.ensureDirSync(path.dirname(dist));
-    }
-    fs.copyFileSync(src, dist);
-}
-
-function extractFileConfig(filePath) {
-    let type = '';
-    const ext = path.extname(filePath);
-    const basename = path.basename(filePath);
-    const src = path.resolve(system.cwd, filePath);
-
-    if (/\.js$/.test(ext)) {
-        type = FILE_TYPES.SCRIPT;
-    } else if (/\.(wxml|html|xml)$/.test(ext)) {
-        type = FILE_TYPES.TPL;
-    } else if (/\.(wxss|scss|sass|less|css)$/.test(ext)) {
-        type = FILE_TYPES.STYLE;
-    } else if (/\.json/.test(ext)) {
-        type = FILE_TYPES.JSON;
-    }
-
-    const fileConfig = {
-        type,
-        src,
-        ext: ext.replace(/^\./, ''),
-        name: basename.replace(ext, '')
-    };
-    return fileConfig;
-}
-
-function saveFile(dist, content) {
-    fs.ensureFileSync(dist);
-    fs.writeFileSync(dist, content, 'utf-8');
-}
-
-var _extends = Object.assign || function (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];
-
-    for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
-      }
-    }
-  }
-
-  return target;
-};
-
-const store = memFs.create();
-const editor = memFsEditor.create(store);
-
-function copy(sourceFile, targetFile, context) {
-    return editor.copyTpl(sourceFile, targetFile, context);
-}
-
-function write(targetFile, content) {
-    return editor.write(targetFile, content);
-}
-
-function writeJSON(...args) {
-    return editor.writeJSON(...args);
-}
-
-function readJSON(...args) {
-    return editor.readJSON(...args);
-}
-
-function save() {
-    return new Promise(resolve => {
-        editor.commit(resolve);
-    });
-}
-
-function search(scheme, options = {}) {
-    return new Promise((resolve, reject) => {
-        glob(scheme, options, (err, files) => {
+function readFile(sourceFilePath) {
+    return new Promise(function (resolve, reject) {
+        fs.readFile(sourceFilePath, function (err, buffer) {
             if (err) {
                 reject(err);
-            } else {
+            }
+            else {
+                resolve(buffer);
+            }
+        });
+    });
+}
+function writeFile(targetFilePath, content) {
+    return new Promise(function (resolve, reject) {
+        fs.writeFile(targetFilePath, content, function (err) {
+            if (err)
+                throw err;
+            resolve();
+        });
+    });
+}
+function searchFiles(scheme, options) {
+    return new Promise(function (resolve, reject) {
+        glob(scheme, options, function (err, files) {
+            if (err) {
+                reject(err);
+            }
+            else {
                 resolve(files);
             }
         });
     });
 }
+//# sourceMappingURL=editor.js.map
 
-function watch(dir, options = {}) {
-    return chokidar.watch(dir, _extends({
-        persistent: true,
-        ignoreInitial: true
-    }, options));
+function toFix(number) {
+    return ('00' + number).slice(-2);
 }
-
-function requireModule (...params) {
-    try {
-        return require.resolve(...params);
-    } catch (err) {
-        !ankaConfig.silent && log.error('Missing dependency', params[0], err);
-    }
+function getCurrentTime() {
+    var now = new Date();
+    return toFix(now.getHours()) + ":" + toFix(now.getMinutes()) + ":" + toFix(now.getSeconds());
 }
-
-class Dependence {
-    isNpmDependence(dependence) {
-        if (/^(@|[A-Za-z0-1])/.test(dependence)) {
-            const dependencePath = path.resolve(system.cwd, system.sourceNodeModules, dependence);
-            if (fs.existsSync(dependencePath) || fs.existsSync(requireModule(dependencePath))) {
-                return true;
-            }
-        }
+var Logger = (function () {
+    function Logger() {
     }
-
-    isLocalDependence(dependence) {
-        return (/^[/|.|\\]/.test(dependence)
-        );
-    }
-}
-
-class File extends Dependence {
-    constructor(src) {
-        super();
-        const ext = path.extname(src);
-        this.ext = ext.replace(/^\./, '');
-        this.basename = path.basename(src);
-        this.name = this.basename.replace(ext, '');
-        this.src = path.resolve(system.cwd, src);
-        this.originalContent = '';
-        this.compiledContent = '';
-        this.dist = src.replace(system.srcDir, system.distDir);
-        this.distDir = path.dirname(this.dist);
-    }
-
-    unlinkFromDist() {
-        fs.unlinkSync(this.dist);
-        log.info(ACTIONS.REMOVE, this.dist);
-    }
-
-    updateContent() {
-        this.originalContent = fs.readFileSync(this.src);
-    }
-
-    save() {
-        if (!this.src || !this.compiledContent || !this.dist) return;
-        saveFile(this.dist, this.compiledContent);
-    }
-}
-
-var postcssWxImport = postcss.plugin('postcss-wximport', () => {
-    return root => {
-        root.walkAtRules('wximport', rule => {
-            rule.name = 'import';
-            rule.params = rule.params.replace(/\.\w+(?=['"]$)/, '.wxss');
-        });
+    Object.defineProperty(Logger.prototype, "time", {
+        get: function () {
+            return chalk.grey("[" + getCurrentTime() + "]");
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Logger.prototype.startLoading = function (msg) {
+        this.oraInstance = ora(msg).start();
     };
+    Logger.prototype.stopLoading = function () {
+        this.oraInstance && this.oraInstance.stop();
+    };
+    Logger.prototype.log = function () {
+        var msg = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            msg[_i] = arguments[_i];
+        }
+        return console.log.apply(console, [this.time].concat(msg));
+    };
+    Logger.prototype.error = function (title, msg, err) {
+        if (title === void 0) { title = ''; }
+        if (msg === void 0) { msg = ''; }
+        if (err === void 0) { err = ''; }
+        this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg));
+        console.log(err);
+    };
+    Logger.prototype.info = function (title, msg) {
+        if (title === void 0) { title = ''; }
+        if (msg === void 0) { msg = ''; }
+        this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg));
+    };
+    Logger.prototype.warn = function (title, msg) {
+        if (title === void 0) { title = ''; }
+        if (msg === void 0) { msg = ''; }
+        this.log(chalk.yellow('⚠'), chalk.reset(title), chalk.grey(msg));
+    };
+    Logger.prototype.success = function (title, msg) {
+        if (title === void 0) { title = ''; }
+        if (msg === void 0) { msg = ''; }
+        this.log(chalk.green('✔'), chalk.reset(title), chalk.grey(msg));
+    };
+    return Logger;
+}());
+var logger = new Logger();
+//# sourceMappingURL=logger.js.map
+
+var scriptParser = (function (file, compilation, cb) {
+    file.updateExt('.js');
+});
+//# sourceMappingURL=scriptParser.js.map
+
+var styleParser = (function (file, compilation, cb) {
+});
+//# sourceMappingURL=styleParser.js.map
+
+var saveFilePlugin = (function () {
+    this.on('completed', function (compilation, cb) {
+        var file = compilation.file;
+        writeFile(file.targetFile, file.content).then(function () {
+            compilation.destroy();
+        }, function (err) {
+            compilation.destroy();
+        });
+    });
+});
+//# sourceMappingURL=index.js.map
+
+var extractDependencyPlugin = (function () {
+    this.on('compile', function (compilation, cb) {
+        var file = compilation.file;
+        if (file.ast === void (0)) {
+            file.ast = acorn.parse(file.content instanceof Buffer ? file.content.toString() : file.content, {
+                sourceType: 'module'
+            });
+        }
+    });
+});
+//# sourceMappingURL=index.js.map
+
+var sourceDir = './src';
+var outputDir = './dist';
+var pages = path.join(sourceDir, 'pages');
+var components = path.join(sourceDir, 'components');
+var silent = false;
+var devMode = false;
+var parsers = [
+    {
+        match: /.*\.(js|es)$/,
+        parsers: [
+            {
+                parser: scriptParser,
+                options: {}
+            }
+        ]
+    },
+    {
+        match: /.*\.(wxss|css|postcss)$/,
+        parsers: [
+            {
+                parser: styleParser,
+                options: {}
+            }
+        ]
+    }
+];
+var debug = false;
+var plugins = [
+    {
+        plugin: extractDependencyPlugin,
+        options: {}
+    },
+    {
+        plugin: saveFilePlugin,
+        options: {}
+    }
+];
+//# sourceMappingURL=ankaDefaultConfig.js.map
+
+var ankaDefaultConfig = /*#__PURE__*/Object.freeze({
+    sourceDir: sourceDir,
+    outputDir: outputDir,
+    pages: pages,
+    components: components,
+    silent: silent,
+    devMode: devMode,
+    parsers: parsers,
+    debug: debug,
+    plugins: plugins
 });
 
-const postcssConfig = {};
-
-var parser$1 = {
-    sass({ file, content }) {
-        return sass.renderSync({
-            file,
-            data: content,
-            outputStyle: system.devMode ? 'nested' : 'compressed'
-        }).css;
-    },
-
-    scss(content) {
-        return this.sass(content);
-    },
-
-    async css({ file, content }) {
-        const config = await genPostcssConfig();
-        const root = await postcss(config.plugins.concat([postcssWxImport])).process(content, _extends({}, config.options, {
-            from: file
-        }));
-        return root.css;
+var cwd = process.cwd();
+function resolveConfig (names, root) {
+    if (names === void 0) { names = []; }
+    var defaultValue = {};
+    var configPaths = names.map(function (name) { return path.join(root || cwd, name); });
+    for (var index = 0; index < configPaths.length; index++) {
+        var configPath = configPaths[index];
+        if (fs.existsSync(configPath)) {
+            Object.assign(defaultValue, require(configPath));
+            break;
+        }
     }
-
-    // less (content) {
-    //     return content
-    // },
-    //
-    // wxss (content) {
-    //     return content
-    // }
-};
-
-function genPostcssConfig() {
-    return postcssConfig.plugins ? Promise.resolve(postcssConfig) : postcssrc({}).then(config => {
-        return Promise.resolve(Object.assign(postcssConfig, config));
-    });
+    return defaultValue;
 }
-
-class StyleFile extends File {
-    constructor(src) {
-        super(src);
-        this.type = FILE_TYPES.STYLE;
-        this.dist = path.join(this.distDir, `${this.name}.wxss`);
-    }
-
-    async compile() {
-        const parser = parser$1[this.ext];
-        if (parser) {
-            try {
-                this.updateContent();
-                this.compiledContent = await parser$1[this.ext]({
-                    file: this.src,
-                    content: this.originalContent.toString('utf8')
-                });
-                this.save();
-                log.info(ACTIONS.COMPILE, this.src);
-            } catch (err) {
-                log.error(ACTIONS.COMPILE, this.src, err.formatted || err);
-            }
-        } else {
-            copyFile(this.src, this.dist);
-            log.info(ACTIONS.COPY, this.src);
-        }
-    }
-}
-
-class Cache {
-    constructor() {
-        this.store = {};
-    }
-
-    remove(name) {
-        delete this.store[name];
-    }
-
-    set(name, data) {
-        this.store[name] = data;
-        return data;
-    }
-
-    find(name) {
-        return this.store[name];
-    }
-
-    list() {
-        return Object.values(this.store);
-    }
-}
-
-const localDependenceCache = new Cache();
-const npmDependenceCache = new Cache();
-
-class NpmDependence extends Dependence {
-    constructor(dependence) {
-        super();
-        this.localDependencies = {};
-        this.npmDependencies = {};
-        this.name = dependence;
-        this.src = path.join(system.sourceNodeModules, dependence);
-        this.dist = path.join(system.distNodeModules, dependence);
-        this.distDir = path.dirname(this.dist);
-
-        const pkgPath = path.join(this.src, 'package.json');
-
-        if (fs.existsSync(pkgPath)) {
-            this.pkgInfo = Object.assign({
-                main: 'index.js'
-            }, require(pkgPath));
-        }
-
-        // Maybe there is not pkgInfo here
-        this.main = this.resolveLocalDependence(this.name);
-    }
-
-    /**
-     * 提取 npm 包内部的所有依赖
-     * @param {string} filePath 依赖文件的绝对路径
-     */
-    traverse(filePath) {
-        if (!filePath || this.localDependencies[filePath]) return;
-        const { ast } = babel.transformFileSync(filePath, {
-            ast: true,
-            babelrc: false
-            // ...system.babelConfig.options
-        });
-        traverse(ast, {
-            enter: astNode => {
-                const node = astNode.node;
-                if (astNode.isImportDeclaration()) {
-                    const dependence = node.source.value;
-                    if (this.isLocalDependence(dependence)) {
-                        this.traverse(this.resolveLocalDependence(dependence, filePath));
-                    } else if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-
-                        node.source.value = this.resolveNpmDependence(npmDependence, filePath);
-                    }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
-                    const dependence = node.arguments[0].value;
-                    if (this.isLocalDependence(dependence)) {
-                        this.traverse(this.resolveLocalDependence(dependence, filePath));
-                    } else if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.arguments[0].value = this.resolveNpmDependence(npmDependence, filePath);
-                    }
-                }
-            }
-        });
-        this.localDependencies[filePath] = {
-            ast,
-            filePath
-        };
-    }
-
-    /**
-     * 将该 npm 模块从 node_modules 移到 system.distNodeModules
-     */
-    compile() {
-        this.traverse(this.main);
-        Object.values(this.localDependencies).map(localDependence => {
-            const filePath = localDependence.filePath;
-            const dist = filePath.replace(system.sourceNodeModules, system.distNodeModules);
-            const { code } = babel.transformFromAst(localDependence.ast, null, {
-                compact: !system.devMode
-            });
-            saveFile(dist, code);
-        });
-        this.updateNpmDependenceCache();
-        log.info(ACTIONS.COMPILE, this.src);
-    }
-
-    /**
-     * 根据依赖名或者相对路径获取依赖的绝对路径，eg: ./index => /A/B/index.js
-     * @param localDependence
-     * @param filePath
-     * @returns {string}
-     */
-    resolveLocalDependence(localDependence = '', filePath = this.src) {
-        if (path.parse(filePath).ext) {
-            filePath = path.dirname(filePath);
-        }
-        return requireModule(localDependence, {
-            paths: [filePath]
-        });
-    }
-
-    /**
-     * 在 npm_modules 目录下均使用相对路径
-     * @param {*} npmDependence
-     * @param {*} filePath npm 模块【文件】路径
-     */
-    resolveNpmDependence(npmDependence, filePath = this.main) {
-        const dist = path.relative(path.dirname(filePath), requireModule(npmDependence.src));
-        this.npmDependencies[npmDependence.name] = npmDependence;
-        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
-    }
-
-    updateNpmDependenceCache() {
-        Object.values(this.npmDependencies).forEach(npmDependence => {
-            if (!npmDependenceCache.find(npmDependence.name)) {
-                npmDependenceCache.set(npmDependence.name, npmDependence);
-                npmDependence.compile();
-            }
-        });
-    }
-}
-
-class ScriptFile extends File {
-    constructor(fileConfig) {
-        super(fileConfig);
-        this.type = FILE_TYPES.SCRIPT;
-        this.localDependencies = {};
-        this.npmDependencies = {};
-    }
-
-    compile() {
-        this.traverse();
-        this.compiledContent = babel.transformFromAst(this.$ast, null, {
-            compact: !system.devMode
-        }).code;
-        this.updateNpmDependenceCache();
-        this.save();
-        log.info(ACTIONS.COMPILE, this.src);
-    }
-
-    traverse() {
-        this.updateContent();
-        this.$ast = babel.transform(this.originalContent, _extends({
-            ast: true,
-            babelrc: false
-        }, system.babelConfig.options)).ast;
-
-        traverse(this.$ast, {
-            enter: astNode => {
-                const node = astNode.node;
-                if (astNode.isImportDeclaration()) {
-                    const dependence = node.source.value;
-                    if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.source.value = this.resolveNpmDependence(npmDependence);
-                    } else if (this.isLocalDependence(dependence)) {
-                        this.resolveLocalDependence(dependence);
-                    }
-                } else if (astNode.isCallExpression() && node.callee.name === 'require' && node.arguments[0] && node.arguments[0].value) {
-                    const dependence = node.arguments[0].value;
-                    if (this.isNpmDependence(dependence)) {
-                        const npmDependence = new NpmDependence(dependence);
-                        node.arguments[0].value = this.resolveNpmDependence(npmDependence);
-                    } else if (this.isLocalDependence(dependence)) {
-                        this.resolveLocalDependence(dependence);
-                    }
-                }
-            }
-        });
-    }
-
-    resolveNpmDependence(npmDependence) {
-        const dist = path.relative(this.distDir, npmDependence.dist);
-        this.npmDependencies[npmDependence.name] = npmDependence;
-        return npmDependence.pkgInfo ? path.join(dist, npmDependence.pkgInfo.main) : dist;
-    }
-
-    resolveLocalDependence(localDependence) {
-        this.localDependencies[localDependence.dist] = localDependence;
-    }
-
-    updateNpmDependenceCache() {
-        Object.values(this.npmDependencies).forEach(npmDependence => {
-            if (!npmDependenceCache.find(npmDependence.name)) {
-                npmDependenceCache.set(npmDependence.name, npmDependence);
-                npmDependence.compile();
-            }
-        });
-    }
-}
-
-class UnknownFile extends File {
-    constructor(src) {
-        super(src);
-        this.type = FILE_TYPES.UNKNOWN;
-    }
-
-    /**
-     * 未知类型文件直接使用拷贝
-     */
-    compile() {
-        log.info(ACTIONS.COPY, this.src);
-        copyFile(this.src, this.dist);
-    }
-}
-
-class LocalDependence {
-    constructor(src) {
-        const fileConfig = extractFileConfig(src);
-
-        switch (fileConfig.type) {
-            case FILE_TYPES.SCRIPT:
-                this.file = new ScriptFile(src);
-                break;
-            case FILE_TYPES.STYLE:
-                this.file = new StyleFile(src);
-                break;
-            default:
-                this.file = new UnknownFile(src);
-                break;
-        }
-    }
-
-    updateContent() {
-        this.file.updateContent();
-    }
-
-    async compile() {
-        await this.file.compile();
-    }
-
-    unlinkFromDist() {
-        this.file.unlinkFromDist();
-    }
-
-    get type() {
-        return this.file.type;
-    }
-
-    get src() {
-        return this.file.src;
-    }
-
-    get dist() {
-        return this.file.dist;
-    }
-}
-
-class DevCommand {
-    addDependence(filePath) {
-        const localDependence = new LocalDependence(filePath);
-        if (!localDependenceCache.find(localDependence.src)) {
-            localDependenceCache.set(localDependence.src, localDependence);
-            localDependence.compile();
-        }
-    }
-
-    unlinkDependence(filePath) {
-        const fileConfig = extractFileConfig(filePath);
-        const file = localDependenceCache.find(fileConfig.src);
-        if (file) {
-            file.unlinkFromDist();
-            localDependenceCache.remove(fileConfig.src);
-        }
-    }
-
-    async updateDependence(filePath) {
-        const fileConfig = extractFileConfig(filePath);
-        const file = localDependenceCache.find(fileConfig.src);
-        if (file) {
-            await file.compile();
-        }
-    }
-
-    async run() {
-        const files = await search(`${system.srcDir}/**/*.*`);
-
-        this.clean();
-
-        files.forEach(filePath => {
-            const localDependence = new LocalDependence(filePath);
-            localDependenceCache.set(localDependence.src, localDependence);
-        });
-
-        const list = localDependenceCache.list();
-
-        for (let index = 0; index < list.length; index++) {
-            await list[index].compile();
-        }
-
-        this.watch();
-    }
-
-    clean() {
-        fs.emptyDirSync(system.distDir);
-    }
-
-    watch() {
-        const watcher = watch(system.srcDir);
-        watcher.on('add', this.addDependence.bind(this));
-        watcher.on('unlink', this.unlinkDependence.bind(this));
-        watcher.on('change', this.updateDependence.bind(this));
-        watcher.on('ready', () => {
-            log.success(ACTIONS.READY, system.srcDir);
-        });
-    }
-}
-
-var dev = {
-    command: 'dev',
-    alias: '',
-    usage: '[projectName]',
-    description: '开发模式',
-    async action(...args) {
-        const cmd = new DevCommand();
-        await cmd.run(...args);
-    }
-};
-
-function downloadRepo (repo, path$$1) {
-    return new Promise((resolve, reject) => {
-        download(repo, path$$1, { clone: true }, err => {
-            err ? reject(err) : resolve();
-        });
-    });
-}
-
-var init = {
-    command: 'init [projectName]',
-    alias: '',
-    usage: '[projectName]',
-    description: '创建小程序项目',
-    options: [['--repo']],
-    on: {
-        '--help'() {
-            console.log(`
-                init [project-name] 初始化项目
-                --repo=[template-path]
-            `);
-        }
-    },
-    async action(projectName = 'anka-project', options) {
-        projectName = path.resolve(system.cwd, projectName);
-        const repo = options.repo || system.scaffold;
-        const exists = await fs.pathExists(projectName);
-
-        if (exists) throw new Error(`${projectName}目录已存在`);
-
-        log.loading('Downloading template...');
-        await downloadRepo(repo, projectName);
-        log.stop();
-        log.success('创建成功', projectName);
-    }
-};
-
-class BuildCommand {
-    constructor() {
-        system.devMode = false;
-    }
-
-    addDependence(filePath) {
-        const localDependence = new LocalDependence(filePath);
-        if (!localDependenceCache.find(localDependence.src)) {
-            localDependenceCache.set(localDependence.src, localDependence);
-            localDependence.compile();
-        }
-    }
-
-    unlinkDependence(filePath) {
-        const fileConfig = extractFileConfig(filePath);
-        const file = localDependenceCache.find(fileConfig.src);
-        if (file) {
-            file.unlinkFromDist();
-            localDependenceCache.remove(fileConfig.src);
-        }
-    }
-
-    async updateDependence(filePath) {
-        const fileConfig = extractFileConfig(filePath);
-        const file = localDependenceCache.find(fileConfig.src);
-        if (file) {
-            await file.compile();
-        }
-    }
-
-    async run() {
-        const files = await search(`${system.srcDir}/**/*.*`);
-
-        this.clean();
-
-        files.forEach(filePath => {
-            const localDependence = new LocalDependence(filePath);
-            localDependenceCache.set(localDependence.src, localDependence);
-        });
-
-        localDependenceCache.list().forEach(localDependence => localDependence.compile());
-    }
-
-    clean() {
-        fs.emptyDirSync(system.distDir);
-    }
-
-    watch() {
-        const watcher = watch(system.srcDir);
-        watcher.on('add', this.addDependence.bind(this));
-        watcher.on('unlink', this.unlinkDependence.bind(this));
-        watcher.on('change', this.updateDependence.bind(this));
-        watcher.on('ready', () => {
-            log.success(ACTIONS.READY, system.srcDir);
-        });
-    }
-}
-
-var build = {
-    command: 'build',
-    alias: '',
-    usage: '[projectName]',
-    description: '构建模式',
-    async action(...args) {
-        const cmd = new BuildCommand();
-        await cmd.run(...args);
-    }
-};
-
-class Installer {
-    constructor(packages) {
-        this.packages = packages;
-        this.ankaModulesDir = path.join(system.cwd, ankaConfig.outputDir, ankaConfig.ankaModulesDir);
-    }
-
-    init() {
-        // this.config = JSON.parse(fs.readFileSync(__dirname + LIB_CONFIG, 'utf8'))
-        // let ankaModulesDir = `${process.cwd()}` + this.config.installPath
-        // if (!fs.existsSync(ankaModulesDir)) {
-        //     fs.mkdirSync(ankaModulesDir)
-        // }
-        fs.ensureDirSync(this.ankaModulesDir);
-
-        return new Promise(resolve => {
-            npm.load(error => {
-                error ? process.exit(1) : resolve();
-            });
-        });
-    }
-
-    async install() {
-        await this.init();
-        return new Promise((resolve, reject) => {
-            npm.commands.install(this.packages, (error, data) => {
-                error ? reject(error) : resolve(data);
-            });
-        });
-    }
-
-    async uninstall() {
-        await this.init();
-        return new Promise((resolve, reject) => {
-            npm.commands.uninstall(this.packages, (error, data) => {
-                error ? reject(error) : resolve(data);
-            });
-        });
-    }
-
-    inject(paths) {
-        return Promise.all(paths.map(item => {
-            const pkgName = item[0].replace(/@(\d+\.?)+/, '');
-            const componentPath = path.join(item[1]);
-            const dest = path.join(this.ankaModulesDir, pkgName);
-            const pkg = readJSON(path.join(system.cwd, 'package.json'), {});
-
-            fs.ensureDirSync(dest);
-            ncp(`${componentPath}/`, dest, function (err) {
-                if (err) {
-                    return console.error(err);
-                }
-            });
-
-            if (pkg && pkg.anka && pkg.anka.type === 'component') {
-                fs.ensureDirSync(dest);
-                ncp(`${componentPath}/*
-                */*`, dest, function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                });
-            }
-        }));
-    }
-}
-
-var install = {
-    command: 'install [module] [otherModules...]',
-    alias: '',
-    description: '安装小程序模块',
-    on: {
-        '--help'() {
-            console.log(`
-                install [module] 安装模块
-            `);
-        }
-    },
-    async action(module, otherModules) {
-        const modules = [module, ...otherModules];
-        const installer = new Installer(modules);
-
-        try {
-            const pkgs = await installer.install();
-            await installer.inject(pkgs);
-        } catch (err) {
-            log.error('Install', '模块安装失败', err);
-        }
-    }
-};
-
-const space = '  ';
-
-function commandInfo (infos = []) {
-    return `${space}Information:\r\n\r\n` + infos.map(info => {
-        return space.repeat(2) + info.group + '\r\n' + info.messages.map(m => space.repeat(3) + m + '\r\n').join('\r\n');
-    }).join('\r\n');
-}
-
-const appConfigFile = path.join(system.cwd, ankaConfig.sourceDir, './app.json');
-const customConfig = fs.existsSync(appConfigFile) ? require(appConfigFile) : {};
-
-const appConfig = Object.assign({
+//# sourceMappingURL=resolveConfig.js.map
+
+var ankaConfig = tslib_1.__assign({}, ankaDefaultConfig, resolveConfig(['anka.config.js', 'anka.config.json']));
+//# sourceMappingURL=ankaConfig.js.map
+
+var cwd$1 = process.cwd();
+var srcDir = path.resolve(cwd$1, ankaConfig.sourceDir);
+var distDir = path.resolve(cwd$1, ankaConfig.outputDir);
+var ankaModules = path.resolve(srcDir, 'anka_modules');
+var distNodeModules = path.resolve(distDir, './npm_modules');
+var sourceNodeModules = path.resolve(cwd$1, './node_modules');
+var defaultScaffold = 'direct:https://github.com/iException/anka-quickstart';
+//# sourceMappingURL=systemConfig.js.map
+
+var systemConfig = /*#__PURE__*/Object.freeze({
+    cwd: cwd$1,
+    srcDir: srcDir,
+    distDir: distDir,
+    ankaModules: ankaModules,
+    distNodeModules: distNodeModules,
+    sourceNodeModules: sourceNodeModules,
+    defaultScaffold: defaultScaffold
+});
+
+var customConfig = resolveConfig(['app.json'], srcDir);
+var projectConfig = Object.assign({
     pages: [],
     subPackages: [],
     window: {
         navigationBarTitleText: 'Wechat'
-        // tabBar: {
-        //     list: []
-        // },
-    } }, customConfig);
+    }
+}, customConfig);
+//# sourceMappingURL=projectConfig.js.map
 
-async function genPage(targetPage, options) {
-    const root = options.root;
-    const pathArr = targetPage.split(path.sep);
-    const name = pathArr.pop();
-    const pagePath = path.join(pathArr.length === 0 ? targetPage : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, root || ankaConfig.pages, pagePath);
-    const scriptFilePath = `${absolutePath}.js`;
-    const jsonFilePath = `${absolutePath}.json`;
-    const tplFilePath = `${absolutePath}.wxml`;
-    const styleFilePath = `${absolutePath}.wxss`;
-    const context = {
-        name
+var config = tslib_1.__assign({}, systemConfig, { ankaConfig: ankaConfig,
+    projectConfig: projectConfig });
+//# sourceMappingURL=index.js.map
+
+var File = (function () {
+    function File(option) {
+        if (!this.sourceFile)
+            throw new Error('invalid value: FileConstructorOption.sourceFile');
+        if (!this.content)
+            throw new Error('invalid value: FileConstructorOption.content');
+        this.sourceFile = option.sourceFile;
+        this.targetFile = option.targetFile || option.sourceFile.replace(config.srcDir, config.distDir);
+        this.content = option.content;
+        this.sourceMap = option.sourceMap;
+    }
+    Object.defineProperty(File.prototype, "dirname", {
+        get: function () {
+            return path.dirname(this.sourceFile);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(File.prototype, "basename", {
+        get: function () {
+            return path.basename(this.sourceFile);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(File.prototype, "extname", {
+        get: function () {
+            return path.extname(this.sourceFile);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    File.prototype.saveTo = function (path) {
+        if (!path) {
+            throw new Error('Invalid path');
+        }
     };
+    File.prototype.updateExt = function (ext) {
+        this.targetFile = replaceExt(this.targetFile, ext);
+    };
+    return File;
+}());
+//# sourceMappingURL=File.js.map
 
-    if (fs.existsSync(scriptFilePath)) throw new Error(`页面已经存在 ${absolutePath}`);
+function createFile(sourceFile) {
+    return readFile(sourceFile).then(function (content) {
+        return Promise.resolve(new File({
+            sourceFile: sourceFile,
+            content: content
+        }));
+    });
+}
+//# sourceMappingURL=createFile.js.map
 
-    if (root) {
-        const subPackage = appConfig.subPackages.find(pkg => {
-            return pkg.root === root;
-        });
-        if (subPackage) {
-            subPackage.pages.includes(pagePath) && subPackage.pages.push(pagePath);
-        } else {
-            appConfig.subPackages.push({
-                root,
-                pages: [pagePath]
+//# sourceMappingURL=resolveModule.js.map
+
+function callPromiseInChain(list) {
+    var params = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        params[_i - 1] = arguments[_i];
+    }
+    return new Promise(function (resolve, reject) {
+        var step = list[0].apply(list, params);
+        var _loop_1 = function (i) {
+            step = step.then(function () {
+                return list[i].apply(list, params);
             });
+        };
+        for (var i = 1; i < list.length; i++) {
+            _loop_1(i);
         }
-    } else {
-        appConfig.pages.push(path.join(ankaConfig.pages, pagePath));
-    }
-
-    copy(path.resolve(__dirname, '../template/page/index.js'), scriptFilePath, context);
-    copy(path.resolve(__dirname, '../template/page/index.wxml'), tplFilePath, context);
-    copy(path.resolve(__dirname, '../template/page/index.wxss'), styleFilePath, context);
-    copy(path.resolve(__dirname, '../template/page/index.json'), jsonFilePath, context);
-    write(path.resolve(process.cwd(), ankaConfig.sourceDir, './app.json'), JSON.stringify(appConfig, null, 4));
-
-    await save();
-
-    log.success('创建页面', absolutePath);
-    log.success('注册页面', absolutePath);
+        step.then(resolve, reject);
+    });
 }
+//# sourceMappingURL=callPromiseInChain.js.map
 
-var genPage$1 = {
-    command: 'page [targetPage]',
-    alias: '',
-    usage: '[targetPage]',
-    description: '创建小程序页面',
-    options: [['--root [value]', '注册页面到subPackages']],
-    on: {
-        '--help'() {
-            console.log(commandInfo([{
-                group: 'page',
-                messages: ['创建小程序页面']
-            }]));
+function asyncFunctionWrapper (fn) {
+    return function () {
+        var params = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i] = arguments[_i];
         }
-    },
-    async action(targetPage, options) {
-        await genPage(targetPage, options);
-    }
-};
-
-async function genComponent(targetComponent, options) {
-    const pathArr = targetComponent.split(path.sep);
-    const name = pathArr.pop();
-    const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
-    const scriptFilePath = `${absolutePath}.js`;
-    const jsonFilePath = `${absolutePath}.json`;
-    const tplFilePath = `${absolutePath}.wxml`;
-    const styleFilePath = `${absolutePath}.wxss`;
-    const context = {
-        name
+        var limitation = params.length;
+        return new Promise(function (resolve) {
+            if (fn.length > limitation) {
+                fn.apply(void 0, params.concat([resolve]));
+            }
+            else {
+                resolve(fn.apply(void 0, params));
+            }
+        });
     };
-
-    copy(path.resolve(__dirname, '../template/component/index.js'), scriptFilePath, context);
-    copy(path.resolve(__dirname, '../template/component/index.wxml'), tplFilePath, context);
-    copy(path.resolve(__dirname, '../template/component/index.wxss'), styleFilePath, context);
-    copy(path.resolve(__dirname, '../template/component/index.json'), jsonFilePath, context);
-
-    await save();
-
-    log.success('组件创建成功', absolutePath);
 }
+//# sourceMappingURL=asyncFunctionWrapper.js.map
 
-var genComponent$1 = {
-    command: 'component [componentName]',
-    alias: '',
-    usage: '[componentName]',
-    description: '创建小程序组件',
-    on: {
-        '--help'() {
-            console.log(commandInfo([{
-                group: 'component',
-                messages: ['创建小程序组件']
-            }]));
+//# sourceMappingURL=index.js.map
+
+var Injection = (function () {
+    function Injection(compiler, options) {
+        this.compiler = compiler;
+        this.options = options;
+    }
+    Injection.prototype.getAnkaConfig = function () {
+        return config.ankaConfig;
+    };
+    Injection.prototype.getSystemConfig = function () {
+        return config;
+    };
+    Injection.prototype.getProjectConfig = function () {
+        return config.projectConfig;
+    };
+    return Injection;
+}());
+var PluginInjection = (function (_super) {
+    tslib_1.__extends(PluginInjection, _super);
+    function PluginInjection(compiler, options) {
+        return _super.call(this, compiler, options) || this;
+    }
+    PluginInjection.prototype.getOptions = function () {
+        return this.options || {};
+    };
+    PluginInjection.prototype.on = function (event, handler) {
+        this.compiler.on(event, handler);
+    };
+    return PluginInjection;
+}(Injection));
+var ParserInjection = (function (_super) {
+    tslib_1.__extends(ParserInjection, _super);
+    function ParserInjection(compiler, options) {
+        return _super.call(this, compiler, options) || this;
+    }
+    ParserInjection.prototype.getOptions = function () {
+        return this.options || {};
+    };
+    return ParserInjection;
+}(Injection));
+//# sourceMappingURL=Injection.js.map
+
+var Compilations = (function () {
+    function Compilations(file, conf, compiler) {
+        this.compiler = compiler;
+        this.config = conf;
+        this.id = Compiler$1.compilationId++;
+        if (file instanceof File) {
+            this.file = file;
+            this.sourceFile = file.sourceFile;
         }
-    },
-    async action(targetComponent, options) {
-        await genComponent(targetComponent, options);
+        else {
+            this.sourceFile = file;
+        }
+        this.register();
     }
-};
+    Compilations.prototype.run = function () {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.loadFile()];
+                    case 1:
+                        _a.sent();
+                        return [4, this.invokeParsers()];
+                    case 2:
+                        _a.sent();
+                        return [4, this.compile()];
+                    case 3:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compilations.prototype.loadFile = function () {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            var _a;
+            return tslib_1.__generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0: return [4, this.compiler.emit('before-load-file', this)];
+                    case 1:
+                        _b.sent();
+                        if (!!(this.file instanceof File)) return [3, 3];
+                        _a = this;
+                        return [4, createFile(this.sourceFile)];
+                    case 2:
+                        _a.file = _b.sent();
+                        _b.label = 3;
+                    case 3: return [4, this.compiler.emit('after-load-file', this)];
+                    case 4:
+                        _b.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compilations.prototype.invokeParsers = function () {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            var file, parsers, tasks;
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        file = this.file;
+                        parsers = this.compiler.parsers.filter(function (matchers) {
+                            return matchers.match.test(file.targetFile);
+                        }).map(function (matchers) {
+                            return matchers.parsers;
+                        }).reduce(function (prev, next) {
+                            return prev.concat(next);
+                        }, []);
+                        tasks = parsers.map(function (parser) {
+                            return asyncFunctionWrapper(parser);
+                        });
+                        return [4, this.compiler.emit('before-parse', this)];
+                    case 1:
+                        _a.sent();
+                        return [4, callPromiseInChain(tasks, file, this)];
+                    case 2:
+                        _a.sent();
+                        return [4, this.compiler.emit('after-parse', this)];
+                    case 3:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compilations.prototype.compile = function () {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.compiler.emit('compile', this)];
+                    case 1:
+                        _a.sent();
+                        return [4, this.compiler.emit('completed', this)];
+                    case 2:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compilations.prototype.register = function () {
+        var oldCompilation = Compiler$1.compilationPool.get(this.sourceFile);
+        if (oldCompilation) {
+            if (config.ankaConfig.debug)
+                console.log('Destroy Compilation', oldCompilation.id, oldCompilation.sourceFile);
+            oldCompilation.destroy();
+        }
+        Compiler$1.compilationPool.set(this.sourceFile, this);
+    };
+    Compilations.prototype.destroy = function () {
+        this.destroyed = true;
+        Compiler$1.compilationPool.delete(this.sourceFile);
+    };
+    return Compilations;
+}());
 
-async function genComponent$2(targetComponent, options) {
-    const page = options.page;
-    const pathArr = targetComponent.split(path.sep);
-    const name = pathArr.pop();
-    const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
-    const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
-
-    if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
-    if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
-
-    const pageConfig = readJSON(pageJsonPath);
-    if (!pageConfig.usingComponents) {
-        pageConfig.usingComponents = {};
+var Compiler$1 = (function () {
+    function Compiler() {
+        this.plugins = {};
+        this.parsers = [];
+        this.config = config;
+        this.initParsers();
+        this.initPlugins();
+        if (config.ankaConfig.debug) {
+            console.log(JSON.stringify(this.config, null, 4));
+        }
     }
-    if (!pageConfig.usingComponents[name]) {
-        pageConfig.usingComponents[name] = path.join('/', componentPath);
-    } else {
-        throw new Error(`组件已经注册 ${componentPath}`);
+    Compiler.prototype.on = function (event, handler) {
+        this.plugins[event].push(handler);
+    };
+    Compiler.prototype.emit = function (event, compilation) {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            var plugins, tasks;
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        plugins = this.plugins[event];
+                        if (!plugins || !plugins.length)
+                            return [2];
+                        tasks = plugins.map(function (plugin) {
+                            return asyncFunctionWrapper(plugin);
+                        });
+                        return [4, callPromiseInChain(tasks, compilation)];
+                    case 1:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compiler.prototype.launch = function () {
+        return tslib_1.__awaiter(this, void 0, Promise, function () {
+            var filePaths, files, compilations;
+            var _this = this;
+            return tslib_1.__generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, searchFiles(config.srcDir + "/**/*")];
+                    case 1:
+                        filePaths = _a.sent();
+                        return [4, Promise.all(filePaths.map(function (file) {
+                                return createFile(file);
+                            }))];
+                    case 2:
+                        files = _a.sent();
+                        logger.info('Resolving files...');
+                        compilations = files.map(function (file) {
+                            return _this.generateCompilation(file);
+                        });
+                        return [4, Promise.all(compilations.map(function (compilation) { return compilation.loadFile(); }))];
+                    case 3:
+                        _a.sent();
+                        return [4, Promise.all(compilations.map(function (compilation) { return compilation.invokeParsers(); }))];
+                    case 4:
+                        _a.sent();
+                        logger.info('Saving files...');
+                        return [4, Promise.all(compilations.map(function (compilations) { return compilations.compile(); }))];
+                    case 5:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    Compiler.prototype.watchFiles = function () {
+    };
+    Compiler.prototype.generateCompilation = function (file) {
+        return new Compilations(file, this.config, this);
+    };
+    Compiler.prototype.initParsers = function () {
+        var _this = this;
+        this.config.ankaConfig.parsers.forEach(function (_a) {
+            var match = _a.match, parsers = _a.parsers;
+            _this.parsers.push({
+                match: match,
+                parsers: parsers.map(function (_a) {
+                    var parser = _a.parser, options = _a.options;
+                    return parser.bind(_this.generateParserInjection(options));
+                })
+            });
+        });
+    };
+    Compiler.prototype.initPlugins = function () {
+        var _this = this;
+        this.config.ankaConfig.plugins.forEach(function (_a) {
+            var plugin = _a.plugin, options = _a.options;
+            plugin.call(_this.generatePluginInjection(options));
+        });
+    };
+    Compiler.prototype.generatePluginInjection = function (options) {
+        return new PluginInjection(this, options);
+    };
+    Compiler.prototype.generateParserInjection = function (options) {
+        return new ParserInjection(this, options);
+    };
+    Compiler.compilationId = 1;
+    Compiler.compilationPool = new Map();
+    return Compiler;
+}());
+//# sourceMappingURL=Compiler.js.map
+
+var Command = (function () {
+    function Command(command) {
+        this.command = command;
+        this.options = [];
+        this.alias = '';
+        this.usage = '';
+        this.description = '';
+        this.examples = [];
+        this.on = {};
     }
-    writeJSON(pageJsonPath, pageConfig, null, 4);
-    await save();
+    Command.prototype.initCompiler = function () {
+        this.$compiler = new Compiler$1();
+    };
+    Command.prototype.setUsage = function (usage) {
+        this.usage = usage;
+    };
+    Command.prototype.setOptions = function () {
+        var options = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            options[_i] = arguments[_i];
+        }
+        this.options = this.options.concat(options);
+    };
+    Command.prototype.setExamples = function () {
+        var example = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            example[_i] = arguments[_i];
+        }
+        this.examples = this.examples.concat(example);
+    };
+    return Command;
+}());
+//# sourceMappingURL=Command.js.map
 
-    log.success('组件注册成功', absolutePath);
-}
+//# sourceMappingURL=index.js.map
 
-var addComponent = {
-    command: 'add [componentName]',
-    alias: '',
-    options: [['--page [value]', 'eg: anka add [componentName] --page=pages/index/index']],
-    usage: '[componentName]',
-    description: '注册组件',
-    async action(targetComponent, options) {
-        await genComponent$2(targetComponent, options);
+var DevCommand = (function (_super) {
+    tslib_1.__extends(DevCommand, _super);
+    function DevCommand() {
+        var _this = _super.call(this, 'dev <pages...>') || this;
+        _this.setExamples('$ anka dev', '$ anka dev index', '$ anka dev /pages/log/log /pages/user/user');
+        _this.$compiler = new Compiler$1();
+        return _this;
     }
-};
+    DevCommand.prototype.action = function (pages, options) {
+        this.initCompiler();
+        this.$compiler.launch();
+    };
+    return DevCommand;
+}(Command));
+//# sourceMappingURL=dev.js.map
 
-async function genComponent$3(targetComponent, options) {
-    const page = options.page;
-    const pathArr = targetComponent.split(path.sep);
-    const name = pathArr.pop();
-    const componentPath = path.join(ankaConfig.components, pathArr.length === 0 ? targetComponent : pathArr.join(path.sep), name);
-    const absolutePath = path.join(process.cwd(), ankaConfig.sourceDir, componentPath);
-    const jsonFilePath = `${absolutePath}.json`;
-    const pageJsonPath = path.join(process.cwd(), ankaConfig.sourceDir, `${page}.json`);
+var commands = [
+    new DevCommand()
+];
+//# sourceMappingURL=commands.js.map
 
-    if (!fs.existsSync(pageJsonPath)) throw new Error(`页面不存在 ${pageJsonPath}`);
-    if (!fs.existsSync(jsonFilePath)) throw new Error(`组件不存在 ${jsonFilePath}`);
-
-    const pageConfig = readJSON(pageJsonPath);
-    if (!pageConfig.usingComponents) {
-        pageConfig.usingComponents = {};
-    }
-    if (pageConfig.usingComponents[name]) {
-        delete pageConfig.usingComponents[name];
-    } else {
-        throw new Error(`组件未注册 ${componentPath}`);
-    }
-    writeJSON(pageJsonPath, pageConfig, null, 4);
-    await save();
-
-    log.success('组件移除成功', absolutePath);
-}
-
-var removeComponent = {
-    command: 'remove [componentName]',
-    alias: '',
-    options: [['--page [value]', 'eg: anka remove [componentName] --page=pages/index/index']],
-    usage: '[componentName]',
-    description: '移除组件',
-    async action(targetComponent, options) {
-        await genComponent$3(targetComponent, options);
-    }
-};
-
-var commands = [init, dev, build, genPage$1, install, genComponent$1, addComponent, removeComponent];
-
-var name = "@anka-dev/cli";
-var version = "0.2.7";
-var description = "WeChat miniprogram helper";
-var bin = {
-	anka: "dist/index.js"
-};
-var scripts = {
-	dev: "rollup -c build/rollup.config.dev.js -w",
-	test: "echo \"Error: no test specified\" && exit 1"
-};
-var repository = {
-	type: "git",
-	url: "https://github.com/iException/anka/"
-};
-var author = "";
-var license = "MIT";
-var bugs = {
-	url: "https://github.com/iException/anka/issues"
-};
-var homepage = "https://github.com/iException/anka";
-var dependencies = {
-	"await-to-js": "^2.0.1",
-	"babel-core": "^6.26.3",
-	"babel-load-config": "^1.0.0",
-	"babel-traverse": "^6.26.0",
-	cfonts: "^2.1.3",
-	chalk: "^2.4.1",
-	chokidar: "^2.0.4",
-	commander: "^2.15.1",
-	"download-git-repo": "^1.0.2",
-	figlet: "^1.2.0",
-	"fs-extra": "^6.0.1",
-	glob: "^7.1.2",
-	inquirer: "^5.2.0",
-	"mem-fs": "^1.1.3",
-	"mem-fs-editor": "^5.1.0",
-	ncp: "^2.0.0",
-	"node-sass": "^4.9.3",
-	npm: "^6.4.1",
-	ora: "^3.0.0",
-	postcss: "^7.0.2",
-	"postcss-load-config": "^2.0.0"
-};
-var devDependencies = {
-	"babel-plugin-external-helpers": "^6.22.0",
-	"babel-plugin-transform-object-rest-spread": "^6.26.0",
-	"babel-preset-env": "^1.7.0",
-	"eslint-config-standard": "^11.0.0",
-	"eslint-plugin-import": "^2.14.0",
-	"eslint-plugin-node": "^7.0.1",
-	"eslint-plugin-promise": "^4.0.0",
-	"eslint-plugin-standard": "^3.1.0",
-	rollup: "^0.64.1",
-	"rollup-plugin-babel": "^3.0.7",
-	"rollup-plugin-commonjs": "^9.1.5",
-	"rollup-plugin-eslint": "^5.0.0",
-	"rollup-plugin-json": "^3.0.0",
-	"rollup-plugin-node-resolve": "^3.3.0",
-	"rollup-watch": "^4.3.1"
-};
-var pkgJson = {
-	name: name,
-	version: version,
-	description: description,
-	bin: bin,
-	scripts: scripts,
-	repository: repository,
-	author: author,
-	license: license,
-	bugs: bugs,
-	homepage: homepage,
-	dependencies: dependencies,
-	devDependencies: devDependencies
-};
-
-commander.version(pkgJson.version).usage('<command> [options]').option('-v', '--version', () => {
+var _this = undefined;
+var pkgJson = require('../package.json');
+commander.version(pkgJson.version)
+    .usage('<command> [options]')
+    .option('-v', '--version', function () {
     console.log(pkgJson.version);
 });
-
-commands.forEach(command => {
-    const cmd = commander.command(command.command);
-
+commands.forEach(function (command) {
+    var cmd = commander.command(command.command);
     if (command.description) {
         cmd.description(command.description);
     }
-
     if (command.usage) {
         cmd.usage(command.usage);
     }
-
     if (command.on) {
-        for (let key in command.on) {
+        for (var key in command.on) {
             cmd.on(key, command.on[key]);
         }
     }
-
     if (command.options) {
-        command.options.forEach(option => {
-            cmd.option(...option);
+        command.options.forEach(function (option) {
+            cmd.option.apply(cmd, option);
         });
     }
-
     if (command.action) {
-        cmd.action(async (...args) => {
-            try {
-                await command.action(...args);
-            } catch (err) {
-                log.error(err.message || '');
-                console.log(err);
+        cmd.action(function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
             }
+            return tslib_1.__awaiter(_this, void 0, void 0, function () {
+                var err_1;
+                return tslib_1.__generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            return [4, command.action.apply(command, args)];
+                        case 1:
+                            _a.sent();
+                            return [3, 3];
+                        case 2:
+                            err_1 = _a.sent();
+                            logger.error(err_1.message || '');
+                            console.log(err_1);
+                            return [3, 3];
+                        case 3: return [2];
+                    }
+                });
+            });
         });
     }
 });
-
 if (process.argv.length === 2) {
     cfonts.say('Anka', {
-        font: 'block',
-        align: 'center'
+        font: 'block'
     });
     commander.outputHelp();
 }
-
 commander.parse(process.argv);
+//# sourceMappingURL=index.js.map
+
+module.exports = Compiler;

@@ -15,8 +15,6 @@ export default class Compilations {
     id: number        // Unique，for each Compilation
     file: File
     sourceFile: string
-
-    // Status，
     destroyed: boolean
 
     constructor (file: File | string, conf: object, compiler: Compiler) {
@@ -69,7 +67,9 @@ export default class Compilations {
     }
 
     async compile (): Promise<void> {
+        // Invoke ExtractDependencyPlugin.
         await this.compiler.emit('compile', this)
+        // Do something else.
         await this.compiler.emit('completed', this)
     }
 

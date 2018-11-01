@@ -1,0 +1,91 @@
+{
+    "rulesDirectory": [
+        "src"
+    ],
+    "rules": {
+        "semicolon": [
+            true,
+            "never"
+        ],
+        "trailing-comma": [
+            true,
+            {
+                "multiline": {
+                    "objects": "never",
+                    "arrays": "never",
+                    "functions": "never",
+                    "typeLiterals": "ignore"
+                },
+                "esSpecCompliant": true
+            }
+        ],
+        "space-before-function-paren": [
+            true,
+            "always"
+        ],
+        "quotemark": [
+            true,
+            "single",
+            "avoid-escape",
+            "avoid-template"
+        ],
+        "no-angle-bracket-type-assertion": false,
+        "only-arrow-functions": false,
+        "object-literal-sort-keys": false,
+        "arrow-parens": false,
+        "ordered-imports": false,
+        "ban-types": false,
+        "forin": false,
+        "class-name": false,
+        "comment-format": [
+            true,
+            "check-space"
+        ],
+        "indent": [
+            true,
+            "spaces"
+        ],
+        "one-line": [
+            true,
+            "check-open-brace",
+            "check-whitespace"
+        ],
+        "no-var-keyword": true,
+        "quotemark": [
+            true,
+            "single",
+            "avoid-escape"
+        ],
+        "whitespace": [
+            true,
+            "check-branch",
+            "check-decl",
+            "check-operator",
+            "check-module",
+            "check-separator",
+            "check-type"
+        ],
+        "typedef-whitespace": [
+            true,
+            {
+                "call-signature": "nospace",
+                "index-signature": "nospace",
+                "parameter": "nospace",
+                "property-declaration": "nospace",
+                "variable-declaration": "nospace"
+            },
+            {
+                "call-signature": "onespace",
+                "index-signature": "onespace",
+                "parameter": "onespace",
+                "property-declaration": "onespace",
+                "variable-declaration": "onespace"
+            }
+        ],
+        "no-internal-module": true,
+        "no-trailing-whitespace": true,
+        "no-null-keyword": false,
+        "prefer-const": false,
+        "jsdoc-format": true
+    }
+}

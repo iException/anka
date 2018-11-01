@@ -1,4 +1,4 @@
-import { Command, Anka } from '../core'
+import { Command, Compiler } from '../core'
 
 export type DevCommandOpts = Object & {}
 
@@ -11,10 +11,12 @@ export default class DevCommand extends Command {
             '$ anka dev index',
             '$ anka dev /pages/log/log /pages/user/user'
         )
+
+        this.$compiler = new Compiler()
     }
 
-    action (pages: Array<string>, options: DevCommandOpts) {
+    action (pages?: Array<string>, options?: DevCommandOpts) {
         this.initCompiler()
-        this.$compiler.emit('after-init', {})
+        this.$compiler.launch()
     }
 }

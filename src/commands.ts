@@ -1,3 +1,5 @@
-import Dev from
+import Dev from './commands/dev'
 
-export default []
+export default [
+    new Dev()
+]

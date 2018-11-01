@@ -71,9 +71,23 @@ export default class Compiler {
 
         logger.info('Resolving files...')
 
-        files.map(file => {
-            this.generateCompilation(file)
+        const compilations = files.map(file => {
+            return this.generateCompilation(file)
         })
+
+        await Promise.all(compilations.map(compilation => compilation.loadFile()))
+        await Promise.all(compilations.map(compilation => compilation.invokeParsers()))
+
+        // Get all files
+        // Compiler.compilationPool.values()
+
+        logger.info('Saving files...')
+        await Promise.all(compilations.map(compilations => compilations.compile()))
+    }
+
+    watchFiles (): void {
+        // utils.
+
     }
 
     generateCompilation (file: File) {

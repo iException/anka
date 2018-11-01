@@ -2,12 +2,15 @@ import Compiler from './Compiler'
 
 export default abstract class Command {
     public command: string
-    public options: Array<string>
+    public options: Array<unknown>
     public alias: string
     public usage: string
     public description: string
     public examples: Array<string>
     public $compiler: Compiler
+    public on: {
+        [key: string]: (...arg: any[]) => void
+    }
 
     constructor (command: string) {
         this.command = command
@@ -16,10 +19,10 @@ export default abstract class Command {
         this.usage = ''
         this.description = ''
         this.examples = []
-        this.$compiler = null
+        this.on = {}
     }
 
-    abstract action (param: string | Array<string>, options: Object): Promise<any> | void
+    abstract action (param: string | Array<string>, options: Object, ...other: any[]): Promise<any> | void
 
     /**
      * Initialize anka core compiler

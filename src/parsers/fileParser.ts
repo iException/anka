@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path = require('path')
 import config from '../config'
 import File from '../core/class/File'
 import Compilation from '../core/class/Compilation'

@@ -1,5 +1,5 @@
-import * as path from 'path'
-import * as acorn from 'acorn'
+import path = require('path')
+import acorn = require('acorn')
 import config from '../../config'
 import replaceExt = require('replace-ext')
 

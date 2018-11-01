@@ -1,4 +1,4 @@
-import * as path from 'path'
+import path = require('path')
 import fileParser from '../parsers/fileParser'
 import scriptParser from '../parsers/scriptParser'
 import styleParser from '../parsers/styleParser'
@@ -11,7 +11,7 @@ import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
  *                   Danger zone
  *****************************************************/
 
- /**
+/**
  * The path where WeChat miniprogram source files exist.
  * @default './src'
  */

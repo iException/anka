@@ -1,10 +1,10 @@
-import * as acorn from 'acorn'
+import acorn = require('acorn')
 import { Compiler } from '../../core'
 
 const dependencyPool = new Map<string, string>()
 
-export default <Plugin>function (this: PluginInjection) {
-    this.on('after-parse', <PluginHandler>function (compilation: Compilation, cb: Function) {
+export default <Plugin> function (this: PluginInjection) {
+    this.on('compile', function (compilation: Compilation, cb: Function) {
         const file = compilation.file
 
         if (file.ast === void (0)) {
@@ -16,5 +16,5 @@ export default <Plugin>function (this: PluginInjection) {
             )
         }
         // const newCompthis.generateCompilation()
-    })
+    } as PluginHandler)
 }
