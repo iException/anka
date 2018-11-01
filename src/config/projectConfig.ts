@@ -1,5 +1,5 @@
 import path = require('path')
-import fs = require('fs-extra')
+import * as fs from 'fs-extra'
 import ankaConfig from './ankaConfig'
 import * as system from './systemConfig'
 import resolveConfig from '../utils/resolveConfig'

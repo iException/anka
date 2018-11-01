@@ -1,15 +1,13 @@
 import { logger } from './utils'
+import * as cfonts from 'cfonts'
 import commands from './commands'
-import cfonts = require('cfonts')
-import commander = require('commander')
+import * as commander from 'commander'
+import Compiler from './core/class/Compiler'
 
 const pkgJson = require('../package.json')
 
 commander.version(pkgJson.version)
     .usage('<command> [options]')
-    .option('-v', '--version', () => {
-        console.log(pkgJson.version)
-    })
 
 commands.forEach(command => {
     const cmd = commander.command(command.command)
@@ -48,8 +46,10 @@ commands.forEach(command => {
 
 if (process.argv.length === 2) {
     cfonts.say('Anka', {
-        font: 'block'
+        font: 'simple',
+        colors: ['greenBright']
     })
+    console.log('  v' + pkgJson.version)
     commander.outputHelp()
 }
 

@@ -1,8 +1,8 @@
-import glob from 'glob'
 import memFs from 'mem-fs'
 import chokidar from 'chokidar'
 import memFsEditor from 'mem-fs-editor'
 
+const glob = require('glob')
 const store = memFs.create()
 const editor = memFsEditor.create(store)
 

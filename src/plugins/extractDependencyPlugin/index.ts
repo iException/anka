@@ -4,7 +4,7 @@ import { Compiler } from '../../core'
 const dependencyPool = new Map<string, string>()
 
 export default <Plugin> function (this: PluginInjection) {
-    this.on('compile', function (compilation: Compilation, cb: Function) {
+    this.on('before-compile', function (compilation: Compilation, cb: Function) {
         const file = compilation.file
 
         if (file.ast === void (0)) {

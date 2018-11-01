@@ -68,9 +68,9 @@ export default class Compilations {
 
     async compile (): Promise<void> {
         // Invoke ExtractDependencyPlugin.
-        await this.compiler.emit('compile', this)
+        await this.compiler.emit('before-compile', this)
         // Do something else.
-        await this.compiler.emit('completed', this)
+        await this.compiler.emit('after-compile', this)
     }
 
     /**

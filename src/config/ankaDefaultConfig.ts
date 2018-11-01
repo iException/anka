@@ -1,4 +1,5 @@
-import path = require('path')
+// import path = require('path')
+import * as path from 'path'
 import fileParser from '../parsers/fileParser'
 import scriptParser from '../parsers/scriptParser'
 import styleParser from '../parsers/styleParser'

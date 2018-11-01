@@ -21,7 +21,14 @@ export default class Compiler {
     public static compilationPool = new Map<string, Compilation>()
     plugins: {
         [eventName: string]: Array<PluginHandler>
-    } = {}
+    } = {
+        'before-load-file': [],
+        'after-load-file': [],
+        'before-parse': [],
+        'after-parse': [],
+        'before-compile': [],
+        'after-compile': []
+    }
     parsers: Array<{
         match: RegExp,
         parsers: Array<Parser>
@@ -43,6 +50,7 @@ export default class Compiler {
      * @param handler
      */
     on (event: string, handler: PluginHandler): void {
+        if (this.plugins[event] === void (0)) throw new Error(`Unknown hook: ${event}`)
         this.plugins[event].push(handler)
     }
 

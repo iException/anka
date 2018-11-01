@@ -2,7 +2,7 @@ import {
     readFile
 } from './editor'
 import path = require('path')
-import fs = require('fs-extra')
+import * as fs from 'fs-extra'
 import File from '../core/class/File'
 
 export default function createFile (sourceFile: string): Promise<File> {

@@ -22,12 +22,12 @@ export default {
         console.error(warning.message)
     },
     plugins: [
-        json(),
+        // json(),
         tslint(),
         ts({
             typescript
         }),
-        resolve(),
-        commonjs()
+        // resolve(),
+        // commonjs()
     ]
 }

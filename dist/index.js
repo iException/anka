@@ -3,9 +3,15 @@
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+var fs = require('fs-extra');
 var chalk = _interopDefault(require('chalk'));
+var path$1 = require('path');
+var fs$1 = require('fs');
 var tslib_1 = require('tslib');
+var cfonts = require('cfonts');
+var commander = require('commander');
 
+var glob = require('glob');
 function readFile(sourceFilePath) {
     return new Promise(function (resolve, reject) {
         fs.readFile(sourceFilePath, function (err, buffer) {
@@ -95,7 +101,7 @@ var Logger = (function () {
     };
     return Logger;
 }());
-var logger = new Logger();
+var log = new Logger();
 //# sourceMappingURL=logger.js.map
 
 var scriptParser = (function (file, compilation, cb) {
@@ -108,7 +114,7 @@ var styleParser = (function (file, compilation, cb) {
 //# sourceMappingURL=styleParser.js.map
 
 var saveFilePlugin = (function () {
-    this.on('completed', function (compilation, cb) {
+    this.on('after-compile', function (compilation, cb) {
         var file = compilation.file;
         writeFile(file.targetFile, file.content).then(function () {
             compilation.destroy();
@@ -120,7 +126,7 @@ var saveFilePlugin = (function () {
 //# sourceMappingURL=index.js.map
 
 var extractDependencyPlugin = (function () {
-    this.on('compile', function (compilation, cb) {
+    this.on('before-compile', function (compilation, cb) {
         var file = compilation.file;
         if (file.ast === void (0)) {
             file.ast = acorn.parse(file.content instanceof Buffer ? file.content.toString() : file.content, {
@@ -133,8 +139,8 @@ var extractDependencyPlugin = (function () {
 
 var sourceDir = './src';
 var outputDir = './dist';
-var pages = path.join(sourceDir, 'pages');
-var components = path.join(sourceDir, 'components');
+var pages = path$1.join(sourceDir, 'pages');
+var components = path$1.join(sourceDir, 'components');
 var silent = false;
 var devMode = false;
 var parsers = [
@@ -186,10 +192,10 @@ var cwd = process.cwd();
 function resolveConfig (names, root) {
     if (names === void 0) { names = []; }
     var defaultValue = {};
-    var configPaths = names.map(function (name) { return path.join(root || cwd, name); });
+    var configPaths = names.map(function (name) { return path$1.join(root || cwd, name); });
     for (var index = 0; index < configPaths.length; index++) {
         var configPath = configPaths[index];
-        if (fs.existsSync(configPath)) {
+        if (fs$1.existsSync(configPath)) {
             Object.assign(defaultValue, require(configPath));
             break;
         }
@@ -202,11 +208,11 @@ var ankaConfig = tslib_1.__assign({}, ankaDefaultConfig, resolveConfig(['anka.co
 //# sourceMappingURL=ankaConfig.js.map
 
 var cwd$1 = process.cwd();
-var srcDir = path.resolve(cwd$1, ankaConfig.sourceDir);
-var distDir = path.resolve(cwd$1, ankaConfig.outputDir);
-var ankaModules = path.resolve(srcDir, 'anka_modules');
-var distNodeModules = path.resolve(distDir, './npm_modules');
-var sourceNodeModules = path.resolve(cwd$1, './node_modules');
+var srcDir = path$1.resolve(cwd$1, ankaConfig.sourceDir);
+var distDir = path$1.resolve(cwd$1, ankaConfig.outputDir);
+var ankaModules = path$1.resolve(srcDir, 'anka_modules');
+var distNodeModules = path$1.resolve(distDir, './npm_modules');
+var sourceNodeModules = path$1.resolve(cwd$1, './node_modules');
 var defaultScaffold = 'direct:https://github.com/iException/anka-quickstart';
 //# sourceMappingURL=systemConfig.js.map
 
@@ -376,7 +382,7 @@ var Compilations = (function () {
     function Compilations(file, conf, compiler) {
         this.compiler = compiler;
         this.config = conf;
-        this.id = Compiler$1.compilationId++;
+        this.id = Compiler.compilationId++;
         if (file instanceof File) {
             this.file = file;
             this.sourceFile = file.sourceFile;
@@ -461,10 +467,10 @@ var Compilations = (function () {
         return tslib_1.__awaiter(this, void 0, Promise, function () {
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4, this.compiler.emit('compile', this)];
+                    case 0: return [4, this.compiler.emit('before-compile', this)];
                     case 1:
                         _a.sent();
-                        return [4, this.compiler.emit('completed', this)];
+                        return [4, this.compiler.emit('after-compile', this)];
                     case 2:
                         _a.sent();
                         return [2];
@@ -473,24 +479,32 @@ var Compilations = (function () {
         });
     };
     Compilations.prototype.register = function () {
-        var oldCompilation = Compiler$1.compilationPool.get(this.sourceFile);
+        var oldCompilation = Compiler.compilationPool.get(this.sourceFile);
         if (oldCompilation) {
             if (config.ankaConfig.debug)
                 console.log('Destroy Compilation', oldCompilation.id, oldCompilation.sourceFile);
             oldCompilation.destroy();
         }
-        Compiler$1.compilationPool.set(this.sourceFile, this);
+        Compiler.compilationPool.set(this.sourceFile, this);
     };
     Compilations.prototype.destroy = function () {
         this.destroyed = true;
-        Compiler$1.compilationPool.delete(this.sourceFile);
+        Compiler.compilationPool.delete(this.sourceFile);
     };
     return Compilations;
 }());
+//# sourceMappingURL=Compilation.js.map
 
-var Compiler$1 = (function () {
+var Compiler = (function () {
     function Compiler() {
-        this.plugins = {};
+        this.plugins = {
+            'before-load-file': [],
+            'after-load-file': [],
+            'before-parse': [],
+            'after-parse': [],
+            'before-compile': [],
+            'after-compile': []
+        };
         this.parsers = [];
         this.config = config;
         this.initParsers();
@@ -500,6 +514,8 @@ var Compiler$1 = (function () {
         }
     }
     Compiler.prototype.on = function (event, handler) {
+        if (this.plugins[event] === void (0))
+            throw new Error("Unknown hook: " + event);
         this.plugins[event].push(handler);
     };
     Compiler.prototype.emit = function (event, compilation) {
@@ -536,7 +552,7 @@ var Compiler$1 = (function () {
                             }))];
                     case 2:
                         files = _a.sent();
-                        logger.info('Resolving files...');
+                        log.info('Resolving files...');
                         compilations = files.map(function (file) {
                             return _this.generateCompilation(file);
                         });
@@ -546,7 +562,7 @@ var Compiler$1 = (function () {
                         return [4, Promise.all(compilations.map(function (compilation) { return compilation.invokeParsers(); }))];
                     case 4:
                         _a.sent();
-                        logger.info('Saving files...');
+                        log.info('Saving files...');
                         return [4, Promise.all(compilations.map(function (compilations) { return compilations.compile(); }))];
                     case 5:
                         _a.sent();
@@ -603,7 +619,7 @@ var Command = (function () {
         this.on = {};
     }
     Command.prototype.initCompiler = function () {
-        this.$compiler = new Compiler$1();
+        this.$compiler = new Compiler();
     };
     Command.prototype.setUsage = function (usage) {
         this.usage = usage;
@@ -633,7 +649,7 @@ var DevCommand = (function (_super) {
     function DevCommand() {
         var _this = _super.call(this, 'dev <pages...>') || this;
         _this.setExamples('$ anka dev', '$ anka dev index', '$ anka dev /pages/log/log /pages/user/user');
-        _this.$compiler = new Compiler$1();
+        _this.$compiler = new Compiler();
         return _this;
     }
     DevCommand.prototype.action = function (pages, options) {
@@ -642,7 +658,6 @@ var DevCommand = (function (_super) {
     };
     return DevCommand;
 }(Command));
-//# sourceMappingURL=dev.js.map
 
 var commands = [
     new DevCommand()
@@ -652,10 +667,7 @@ var commands = [
 var _this = undefined;
 var pkgJson = require('../package.json');
 commander.version(pkgJson.version)
-    .usage('<command> [options]')
-    .option('-v', '--version', function () {
-    console.log(pkgJson.version);
-});
+    .usage('<command> [options]');
 commands.forEach(function (command) {
     var cmd = commander.command(command.command);
     if (command.description) {
@@ -692,7 +704,7 @@ commands.forEach(function (command) {
                             return [3, 3];
                         case 2:
                             err_1 = _a.sent();
-                            logger.error(err_1.message || '');
+                            log.error(err_1.message || '');
                             console.log(err_1);
                             return [3, 3];
                         case 3: return [2];
@@ -704,8 +716,10 @@ commands.forEach(function (command) {
 });
 if (process.argv.length === 2) {
     cfonts.say('Anka', {
-        font: 'block'
+        font: 'simple',
+        colors: ['greenBright']
     });
+    console.log('  v' + pkgJson.version);
     commander.outputHelp();
 }
 commander.parse(process.argv);

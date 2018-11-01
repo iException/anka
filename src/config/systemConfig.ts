@@ -1,4 +1,4 @@
-import path = require('path')
+import * as path from 'path'
 import ankaConfig from './ankaConfig'
 
 export const cwd = process.cwd()

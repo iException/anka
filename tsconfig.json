@@ -22,6 +22,7 @@
         "src/**/*.ts",
         "./package.json",
         "./types/index.d.ts",
+        "./types/glob.d.ts",
         "./types/cfonts.d.ts"
     ],
     "exclude": [
