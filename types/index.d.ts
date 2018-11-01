@@ -66,6 +66,11 @@ declare type AnkaConfig = {
 
 declare type ProjectConfig = object
 
+declare type Matcher = {
+    match: RegExp,
+    parsers: Array<Parser>
+}
+
 declare type MatcherOptions = {
     match: RegExp,
     parsers: Array<ParserOptions>

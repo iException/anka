@@ -15,10 +15,6 @@ export default class Compilations {
     id: number        // Unique，for each Compilation
     file: File
     sourceFile: string
-    // targetFile: string
-    // ast: Object | undefined
-    resourceType: RESOURCE_TYPE
-    parsers: Array<Parser>
 
     // Status，
     destroyed: boolean
@@ -53,8 +49,22 @@ export default class Compilations {
     }
 
     async invokeParsers (): Promise<void> {
+        const file = this.file
+        const parsers = <Parser[]>this.compiler.parsers.filter((matchers: Matcher) => {
+            return matchers.match.test(file.targetFile)
+        }).map((matchers: Matcher) => {
+            return matchers.parsers
+        }).reduce((prev, next) => {
+            return prev.concat(next)
+        }, [])
+        const tasks = parsers.map(parser => {
+            return utils.asyncFunctionWrapper(parser)
+        })
+
         await this.compiler.emit('before-parse', this)
-        // TODO: Parser only excutes once
+
+        await utils.callPromiseInChain(tasks, file, this)
+
         await this.compiler.emit('after-parse', this)
     }
 
