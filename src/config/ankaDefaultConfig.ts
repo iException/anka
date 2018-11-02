@@ -1,4 +1,4 @@
-// import path = require('path')
+// import * as path from 'path'
 import * as path from 'path'
 import fileParser from '../parsers/fileParser'
 import scriptParser from '../parsers/scriptParser'
@@ -81,7 +81,7 @@ export const parsers: ParsersConfigration = [
  * Whether to output debug information.
  * @default false
  */
-export const debug = false
+export const debug: boolean = false
 
 /**
  * Register plugin.

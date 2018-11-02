@@ -1,3 +1,4 @@
+import * as Glob from 'glob'
 import * as fs from 'fs-extra'
 const glob = require('glob')
 
@@ -22,9 +23,9 @@ export function writeFile (targetFilePath: string, content: Content): Promise<un
     })
 }
 
-export function searchFiles (scheme: string, options?: glob.IOptions): Promise<string[]> {
+export function searchFiles (scheme: string, options?: Glob.IOptions): Promise<string[]> {
     return new Promise((resolve, reject) => {
-        glob(scheme, options, (err, files) => {
+        glob(scheme, options, (err: (Error | null), files: Array<string>): void => {
             if (err) {
                 reject(err)
             } else {

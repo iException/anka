@@ -1,3 +1,4 @@
+import config from './config'
 import { logger } from './utils'
 import * as cfonts from 'cfonts'
 import commands from './commands'
@@ -6,7 +7,15 @@ import Compiler from './core/class/Compiler'
 
 const pkgJson = require('../package.json')
 
-commander.version(pkgJson.version)
+require('source-map-support').install()
+
+if (process.argv.indexOf('--debug') > -1) {
+    config.ankaConfig.debug = true
+}
+
+commander
+    .option('--debug', 'enable debug mode')
+    .version(pkgJson.version)
     .usage('<command> [options]')
 
 commands.forEach(command => {
@@ -42,6 +51,15 @@ commands.forEach(command => {
             }
         })
     }
+
+    if (command.examples) {
+        cmd.on('--help', function () {
+            command.printTitle('Examples:')
+            command.examples.forEach(example => {
+                command.printContent(example)
+            })
+        })
+    }
 })
 
 if (process.argv.length === 2) {
@@ -49,7 +67,7 @@ if (process.argv.length === 2) {
         font: 'simple',
         colors: ['greenBright']
     })
-    console.log('  v' + pkgJson.version)
+    console.log('  Version: ' + pkgJson.version)
     commander.outputHelp()
 }
 

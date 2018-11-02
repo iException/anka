@@ -1,4 +1,4 @@
-import { Compiler } from '../../core'
+import logger from '../../utils/logger'
 import { writeFile } from '../../utils/editor'
 
 export default <Plugin>function (this: PluginInjection) {
@@ -8,8 +8,11 @@ export default <Plugin>function (this: PluginInjection) {
         // TODO: Use mem-fs
         writeFile(file.targetFile, file.content).then(() => {
             compilation.destroy()
+            cb()
         }, err => {
+            logger.error('Error', err.message, err)
             compilation.destroy()
+            cb()
         })
     })
 }

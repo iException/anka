@@ -1,4 +1,4 @@
-import path = require('path')
+import * as path from 'path'
 import config from '../config'
 import File from '../core/class/File'
 
@@ -10,4 +10,5 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
     // this.resourceType = RESOURCE_TYPE.OTHER
     // file.targetFile = file.targetFile.replace(config.srcDir, config.distDir)
     file.updateExt('.js')
+    cb()
 }

@@ -1,7 +1,4 @@
 import {
-    logger
-} from '../../utils'
-import {
     ParserInjection,
     PluginInjection
 } from './Injection'
@@ -12,8 +9,10 @@ import Compilation from './Compilation'
 import callPromiseInChain from '../../utils/callPromiseInChain'
 import asyncFunctionWrapper from '../../utils/asyncFunctionWrapper'
 
+const { logger } = utils
+
 /**
- * The core complier
+ * The core compiler.
  */
 export default class Compiler {
     readonly config: CompilerConfig
@@ -40,7 +39,10 @@ export default class Compiler {
         this.initPlugins()
 
         if (config.ankaConfig.debug) {
-            console.log(JSON.stringify(this.config, null, 4))
+            console.log(JSON.stringify(this.config, (key, value) => {
+                if (value instanceof Function) return '[Function]'
+                return value
+            }, 4))
         }
     }
 
@@ -72,30 +74,40 @@ export default class Compiler {
     }
 
     async launch (): Promise<any> {
-        const filePaths: string[] = await utils.searchFiles(`${config.srcDir}/**/*`)
+        const filePaths: string[] = await utils.searchFiles(`${config.srcDir}/**/*`, {
+            nodir: true,
+            silent: false,
+            absolute: true
+        })
         const files = await Promise.all(filePaths.map(file => {
             return utils.createFile(file)
         }))
-
-        logger.info('Resolving files...')
-
         const compilations = files.map(file => {
-            return this.generateCompilation(file)
+            return new Compilation(file, this.config, this)
         })
 
         await Promise.all(compilations.map(compilation => compilation.loadFile()))
         await Promise.all(compilations.map(compilation => compilation.invokeParsers()))
 
-        // Get all files
+        // TODO: Get all files
         // Compiler.compilationPool.values()
 
-        logger.info('Saving files...')
         await Promise.all(compilations.map(compilations => compilations.compile()))
     }
 
     watchFiles (): void {
-        // utils.
+        const watcher = utils.genFileWatcher(`${config.srcDir}/**/*`, {
+            followSymlinks: false
+        })
 
+        watcher.on('add', (files: string[]) => {
+            console.log(files)
+        })
+        // watcher.on('unlink', this.unlinkDependence.bind(this))
+        // watcher.on('change', this.updateDependence.bind(this))
+        watcher.on('ready', () => {
+            logger.success('Ready', 'Anka is waiting for changes...')
+        })
     }
 
     generateCompilation (file: File) {

@@ -1,7 +1,7 @@
 import {
     readFile
 } from './editor'
-import path = require('path')
+import * as path from 'path'
 import * as fs from 'fs-extra'
 import File from '../core/class/File'
 

@@ -12,12 +12,12 @@ export default abstract class Command {
         [key: string]: (...arg: any[]) => void
     }
 
-    constructor (command: string) {
+    constructor (command: string, desc?: string) {
         this.command = command
         this.options = []
         this.alias = ''
         this.usage = ''
-        this.description = ''
+        this.description = desc
         this.examples = []
         this.on = {}
     }
@@ -41,5 +41,13 @@ export default abstract class Command {
 
     protected setExamples (...example: Array<string>): void {
         this.examples = this.examples.concat(example)
+    }
+
+    public printTitle (...arg: Array<any>) {
+        console.log('\r\n ', ...arg, '\r\n')
+    }
+
+    public printContent (...arg: Array<any>) {
+        console.log('   ', ...arg)
     }
 }

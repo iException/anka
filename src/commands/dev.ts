@@ -1,10 +1,14 @@
+import { logger } from '../utils'
 import { Command, Compiler } from '../core'
 
 export type DevCommandOpts = Object & {}
 
 export default class DevCommand extends Command {
     constructor () {
-        super('dev <pages...>')
+        super(
+            'dev [pages...]',
+            'Development Mode'
+        )
 
         this.setExamples(
             '$ anka dev',
@@ -15,8 +19,17 @@ export default class DevCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    action (pages?: Array<string>, options?: DevCommandOpts) {
+    async action (pages?: Array<string>, options?: DevCommandOpts) {
+        const startupTime = Date.now()
+
+        logger.startLoading('Startup')
+
         this.initCompiler()
-        this.$compiler.launch()
+        await this.$compiler.launch()
+
+        logger.stopLoading()
+        logger.info('Start', `${Date.now() - startupTime}ms`)
+
+        this.$compiler.watchFiles()
     }
 }
