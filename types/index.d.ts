@@ -217,3 +217,7 @@ declare class PluginInjection extends Injection {
 declare module 'acorn-walk' {
     function simple (ast: any, options: any): void
 }
+
+declare module 'postcss-load-config' {
+    export default function (options: object): any
+}

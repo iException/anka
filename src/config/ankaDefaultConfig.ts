@@ -1,8 +1,9 @@
 // import * as path from 'path'
 import * as path from 'path'
+import sassParser from '../parsers/sassParser'
 import fileParser from '../parsers/fileParser'
-import scriptParser from '../parsers/scriptParser'
 import styleParser from '../parsers/styleParser'
+import scriptParser from '../parsers/scriptParser'
 import templateParser from '../parsers/templateParser'
 import saveFilePlugin from '../plugins/saveFilePlugin'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
@@ -71,6 +72,15 @@ export const parsers: ParsersConfigration = [
         parsers: [
             {
                 parser: styleParser,
+                options: {}
+            }
+        ]
+    },
+    {
+        match: /.*\.(sass|scss)$/,
+        parsers: [
+            {
+                parser: sassParser,
                 options: {}
             }
         ]
