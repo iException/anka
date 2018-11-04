@@ -97,17 +97,17 @@ declare type Plugin = (this: PluginInjection) => void
 declare type PluginHandler = (compilation: Compilation, cb?: Function) => void
 
 declare class Compiler {
-    readonly config: object
+    readonly config: CompilerConfig
     public static compilationId: number
     public static compilationPool: Map<string, Compilation>
 
     plugins: {
         [eventName: string]: Array<PluginHandler>
     }
-    parsers: {
-        test: RegExp,
+    parsers: Array<{
+        match: RegExp,
         parsers: Array<Parser>
-    }
+    }>
 
     on (event: string, handler: PluginHandler): void
 
@@ -115,7 +115,7 @@ declare class Compiler {
 
     launch (): Promise<any>
 
-    watchFiles (): void
+    watchFiles (): Promise<any>
 
     generateCompilation (file: File): Compilation
 
@@ -134,13 +134,9 @@ declare class Compilation {
     id: number        // Unique，for each Compilation
     file: File
     sourceFile: string
-    resourceType: RESOURCE_TYPE
-    parsers: Array<Parser>
-
-    // Status，
     destroyed: boolean
 
-    new (file: File | string, conf: object, compiler: Compiler): Compilation
+    constructor (file: File | string, conf: object, compiler: Compiler)
 
     run (): Promise<void>
 
@@ -153,7 +149,7 @@ declare class Compilation {
     /**
      * Register on Compiler and destroy the previous one if conflict arises.
      */
-    register (): void
+    enroll (): void
 
     /**
      * Unregister themselves from Compiler.
@@ -171,9 +167,9 @@ declare class File {
     public basename: string
     public extname: string
 
-    new (option: FileConstructorOption): File
+    constructor (option: FileConstructorOption)
 
-    saveTo (path: string): void
+    saveTo (path: string): Promise<void>
 
     updateExt (ext: string): void
 }
@@ -187,9 +183,10 @@ declare type FileConstructorOption = {
 }
 
 declare class Injection {
-    getAnkaConfig (): object
-    getSystemConfig (): object
-    getProjectConfig (): object
+    getCompiler (): Compiler
+    getAnkaConfig (): AnkaConfig
+    getSystemConfig (): CompilerConfig
+    getProjectConfig (): ProjectConfig
 }
 
 declare class ParserInjection extends Injection {
@@ -215,4 +212,8 @@ declare class PluginInjection extends Injection {
      * @param handler
      */
     on (event: string, handler: PluginHandler): void
+}
+
+declare module 'acorn-walk' {
+    function simple (ast: any, options: any): void
 }

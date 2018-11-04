@@ -1,5 +1,5 @@
-import config from '../../config'
 import Compiler from './Compiler'
+import config from '../../config'
 import Compilation from './Compilation'
 
 export abstract class Injection {
@@ -13,15 +13,19 @@ export abstract class Injection {
 
     abstract getOptions (): object
 
-    getAnkaConfig (): object {
+    getCompiler (): Compiler {
+        return this.compiler
+    }
+
+    getAnkaConfig (): AnkaConfig {
         return config.ankaConfig
     }
 
-    getSystemConfig (): object {
+    getSystemConfig (): CompilerConfig {
         return config
     }
 
-    getProjectConfig (): object {
+    getProjectConfig (): ProjectConfig {
         return config.projectConfig
     }
 }

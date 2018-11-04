@@ -43,6 +43,7 @@
         ],
         "indent": [
             true,
+            4,
             "spaces"
         ],
         "one-line": [

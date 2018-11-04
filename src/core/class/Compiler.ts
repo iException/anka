@@ -3,6 +3,7 @@ import {
     PluginInjection
 } from './Injection'
 import File from './File'
+import * as fs from 'fs-extra'
 import config from '../../config'
 import * as utils from '../../utils'
 import Compilation from './Compilation'
@@ -86,6 +87,8 @@ export default class Compiler {
             return new Compilation(file, this.config, this)
         })
 
+        fs.ensureDirSync(config.distNodeModules)
+
         await Promise.all(compilations.map(compilation => compilation.loadFile()))
         await Promise.all(compilations.map(compilation => compilation.invokeParsers()))
 
@@ -95,18 +98,27 @@ export default class Compiler {
         await Promise.all(compilations.map(compilations => compilations.compile()))
     }
 
-    watchFiles (): void {
-        const watcher = utils.genFileWatcher(`${config.srcDir}/**/*`, {
-            followSymlinks: false
-        })
+    watchFiles (): Promise<any> {
+        return new Promise(resolve => {
+            const watcher = utils.genFileWatcher(`${config.srcDir}/**/*`, {
+                followSymlinks: false
+            })
 
-        watcher.on('add', (files: string[]) => {
-            console.log(files)
-        })
-        // watcher.on('unlink', this.unlinkDependence.bind(this))
-        // watcher.on('change', this.updateDependence.bind(this))
-        watcher.on('ready', () => {
-            logger.success('Ready', 'Anka is waiting for changes...')
+            watcher.on('add', async (fileName: string) => {
+                const file = await utils.createFile(fileName)
+                await this.generateCompilation(file).run()
+            })
+            watcher.on('unlink', async (fileName: string) => {
+                await fs.unlink(fileName.replace(config.srcDir, config.distDir))
+                logger.success('Remove', fileName)
+            })
+            watcher.on('change', async (fileName: string) => {
+                const file = await utils.createFile(fileName)
+                await this.generateCompilation(file).run()
+            })
+            watcher.on('ready', () => {
+                resolve()
+            })
         })
     }
 

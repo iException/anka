@@ -1,9 +1,9 @@
-import json from 'rollup-plugin-json'
+// import json from 'rollup-plugin-json'
 import ts from 'rollup-plugin-typescript'
 import tslint from 'rollup-plugin-tslint'
 import typescript from 'typescript'
-import commonjs from 'rollup-plugin-commonjs'
-import resolve from 'rollup-plugin-node-resolve'
+// import commonjs from 'rollup-plugin-commonjs'
+// import resolve from 'rollup-plugin-node-resolve'
 
 export default {
     input: './src/index.ts',

@@ -13,6 +13,8 @@ if (process.argv.indexOf('--debug') > -1) {
     config.ankaConfig.debug = true
 }
 
+logger.info('Launching...')
+
 commander
     .option('--debug', 'enable debug mode')
     .version(pkgJson.version)

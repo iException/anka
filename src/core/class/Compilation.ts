@@ -9,7 +9,7 @@ import * as utils from '../../utils'
 /**
  * A compilation task
  */
-export default class Compilations {
+export default class Compilation {
     config: object
     readonly compiler: Compiler
     id: number        // Unique，for each Compilation
@@ -29,7 +29,7 @@ export default class Compilations {
             this.sourceFile = file
         }
 
-        this.register()
+        this.enroll()
     }
 
     async run (): Promise<void> {
@@ -39,6 +39,8 @@ export default class Compilations {
     }
 
     async loadFile (): Promise<void> {
+        if (this.destroyed) return
+
         await this.compiler.emit('before-load-file', this)
         if (!(this.file instanceof File)) {
             this.file = await utils.createFile(this.sourceFile)
@@ -47,6 +49,8 @@ export default class Compilations {
     }
 
     async invokeParsers (): Promise<void> {
+        if (this.destroyed) return
+
         const file = this.file
         const parsers = <Parser[]>this.compiler.parsers.filter((matchers: Matcher) => {
             return matchers.match.test(file.targetFile)
@@ -67,16 +71,19 @@ export default class Compilations {
     }
 
     async compile (): Promise<void> {
+        if (this.destroyed) return
+
         // Invoke ExtractDependencyPlugin.
         await this.compiler.emit('before-compile', this)
         // Do something else.
         await this.compiler.emit('after-compile', this)
+        utils.logger.info('Compile',  this.file.sourceFile.replace(config.cwd, ''))
     }
 
     /**
      * Register on Compiler and destroy the previous one if conflict arises.
      */
-    register (): void {
+    enroll (): void {
         const oldCompilation = Compiler.compilationPool.get(this.sourceFile)
 
         if (oldCompilation) {
