@@ -63,6 +63,8 @@ export default class Compiler {
      * @param compilation
      */
     async emit (event: string, compilation: Compilation): Promise<any> {
+        if (compilation.destroyed) return
+
         const plugins = this.plugins[event]
 
         if (!plugins || !plugins.length) return
@@ -74,6 +76,9 @@ export default class Compiler {
         await callPromiseInChain(tasks, compilation)
     }
 
+    /**
+     * Everything start from here.
+     */
     async launch (): Promise<any> {
         const filePaths: string[] = await utils.searchFiles(`${config.srcDir}/**/*`, {
             nodir: true,
@@ -89,13 +94,13 @@ export default class Compiler {
 
         fs.ensureDirSync(config.distNodeModules)
 
-        await Promise.all(compilations.map(compilation => compilation.loadFile()))
-        await Promise.all(compilations.map(compilation => compilation.invokeParsers()))
+        // await Promise.all(compilations.map(compilation => compilation.loadFile()))
+        // await Promise.all(compilations.map(compilation => compilation.invokeParsers()))
 
         // TODO: Get all files
         // Compiler.compilationPool.values()
 
-        await Promise.all(compilations.map(compilations => compilations.compile()))
+        await Promise.all(compilations.map(compilations => compilations.run()))
     }
 
     watchFiles (): Promise<any> {
@@ -122,10 +127,17 @@ export default class Compiler {
         })
     }
 
+    /**
+     * Create new Compilation.
+     * @param file
+     */
     generateCompilation (file: File) {
         return new Compilation(file, this.config, this)
     }
 
+    /**
+     * Mount parsers.
+     */
     initParsers (): void {
         this.config.ankaConfig.parsers.forEach(({ match, parsers }) => {
             this.parsers.push({
@@ -137,6 +149,9 @@ export default class Compiler {
         })
     }
 
+    /**
+     * Mount Plugins.
+     */
     initPlugins (): void {
         this.config.ankaConfig.plugins.forEach(({ plugin, options }) => {
             plugin.call(this.generatePluginInjection(options))

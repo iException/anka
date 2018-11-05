@@ -8,7 +8,7 @@ import * as utils from '../../utils'
 import * as escodegen from 'escodegen'
 import * as acornWalker from 'acorn-walk'
 
-const dependencyPool = new Map<string, string | undefined>()
+const dependencyPool = new Map<string, string>()
 
 export default <Plugin> function (this: PluginInjection) {
     const compiler = this.getCompiler()
@@ -17,6 +17,7 @@ export default <Plugin> function (this: PluginInjection) {
 
     this.on('before-compile', function (compilation: Compilation, cb: Function) {
         const file = compilation.file
+        const localDependencyPool = new Map<string, string>()
 
         // Only resolve js file.
         if (file.extname === '.js') {
@@ -38,7 +39,7 @@ export default <Plugin> function (this: PluginInjection) {
                         source.type === 'Literal' &&
                         typeof source.value === 'string'
                     ) {
-                        resolve(source, file.sourceFile, file.targetFile)
+                        resolve(source, file.sourceFile, file.targetFile, localDependencyPool)
                     }
                 },
                 CallExpression (node: any) {
@@ -54,62 +55,48 @@ export default <Plugin> function (this: PluginInjection) {
                         args[0].type === 'Literal' &&
                         typeof args[0].value === 'string'
                     ) {
-                        resolve(args[0], file.sourceFile, file.targetFile)
+                        resolve(args[0], file.sourceFile, file.targetFile, localDependencyPool)
                     }
                 }
             })
             file.content = escodegen.generate(file.ast)
-        }
 
-        cb()
-        // const newCompthis.generateCompilation()
+            const dependencyList = Array.from(localDependencyPool.keys()).filter(dependency => !dependencyPool.has(dependency))
+
+            Promise.all(dependencyList.map(dependency => traverseNpmDependency(dependency))).then(() => {
+                cb()
+            }).catch(err => {
+                cb()
+                utils.logger.error(file.sourceFile, err.message, err)
+            })
+        } else {
+            cb()
+        }
     } as PluginHandler)
 
-    function resolve (node: any, sourceFile: string, targetFile: string) {
+    function resolve (node: any, sourceFile: string, targetFile: string, localDependencyPool: Map<string, string>) {
         const sourceBaseName = path.dirname(sourceFile)
         const targetBaseName = path.dirname(targetFile)
+        const dependency = utils.resolveModule(node.value, {
+            paths: [sourceBaseName]
+        })
 
-        if (utils.isNpmDependency(node.value)) {
-            const dependency = utils.resolveModule(node.value, {
-                paths: [sourceBaseName]
-            })
-
-            if (!dependency) {
-                console.log(node.value, 'is not exist', sourceFile)
-                return
-            }
+        if (testNodeModules.test(dependency)) {
             const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
 
             node.value = path.relative(targetBaseName, distPath)
-            if (dependencyPool.has(dependency)) return
-            traverseNpmDependency(dependency)
-        } else {
-            // If the file exists in node_modules
-            if (testNodeModules.test(sourceFile)) {
-                const dependency = utils.resolveModule(node.value, {
-                    paths: [sourceBaseName]
-                })
-                const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
-                node.value = path.relative(targetBaseName, distPath)
 
-                if (dependencyPool.has(dependency)) return
-                traverseNpmDependency(dependency)
-            }
+            if (localDependencyPool.has(dependency)) return
+            localDependencyPool.set(dependency, dependency)
         }
     }
 
-    function traverseNpmDependency (dependency: string) {
-        if (dependencyPool.has(dependency)) return
+    async function traverseNpmDependency (dependency: string) {
         dependencyPool.set(dependency, dependency)
-
-        const file = utils.createFileSync(dependency)
+        const file = await utils.createFile(dependency)
 
         file.targetFile = file.sourceFile.replace(config.sourceNodeModules, config.distNodeModules)
-        compiler.generateCompilation(file).run().then(() => {
-            // logger.info('Resolve', dependency)
-        }).catch(err => {
-            utils.logger.error(dependency, err.message, err)
-        })
+        await compiler.generateCompilation(file).run()
     }
 
 }

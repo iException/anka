@@ -45,6 +45,7 @@ export default class Compilation {
         if (!(this.file instanceof File)) {
             this.file = await utils.createFile(this.sourceFile)
         }
+
         await this.compiler.emit('after-load-file', this)
     }
 
@@ -64,9 +65,7 @@ export default class Compilation {
         })
 
         await this.compiler.emit('before-parse', this)
-
         await utils.callPromiseInChain(tasks, file, this)
-
         await this.compiler.emit('after-parse', this)
     }
 
