@@ -29,9 +29,9 @@ export class Logger {
         return console.log(this.time, ...msg)
     }
 
-    error (title: string = '', msg: string = '', err?: Error) {
+    error (title: string = '', msg: string = '', err?: any) {
         this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg))
-        err && console.error(err)
+        err && console.log(err)
     }
 
     info (title: string = '', msg: string = '') {

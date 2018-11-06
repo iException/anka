@@ -25,7 +25,7 @@ export default class CreatePageCommand extends Command {
         )
 
         this.setOptions(
-            '-R, --root <subpackage>',
+            '-r, --root <subpackage>',
             'save page to subpackages'
         )
 
@@ -50,16 +50,16 @@ export default class CreatePageCommand extends Command {
         } = <CompilerConfig>config
         const CwdRegExp = new RegExp(`^${config.cwd}`)
         const pagePath = page.split(path.sep).length === 1 ?
-            path.join( ankaConfig.pages, page, page) : page
+            path.join(ankaConfig.pages, page, page) : page
         const pageName = pagePath.split(path.sep).pop()
         const context = {
             pageName
         }
         const appConfigPath = path.join(config.srcDir, 'app.json')
-        let absolutePath = config.cwd
+        let absolutePath = config.srcDir
 
         if (root) {
-            const rootPath = path.join(path.relative(ankaConfig.sourceDir, ankaConfig.subPackages), root)
+            const rootPath = path.join(ankaConfig.subPackages, root)
             const subPkg = projectConfig.subPackages.find((pkg: any) => pkg.root === rootPath)
 
             absolutePath = path.join(absolutePath, ankaConfig.subPackages, root, pagePath)

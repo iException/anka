@@ -29,13 +29,13 @@ export const outputDir = './dist'
  * The path where WeChat miniprogram pages exist.
  * @default './src/pages'
  */
-export const pages = path.join(sourceDir, './pages')
+export const pages = './pages'
 
 /**
  * The path where WeChat miniprogram components exist.
  * @default './src/components'
  */
-export const components = path.join(sourceDir, './components')
+export const components = './components'
 
 /**
  * Template for creating page and component.
@@ -49,7 +49,7 @@ export const template = {
  * The path where WeChat miniprogram subpackages exist.
  * @default './src/subPackages'
  */
-export const subPackages = path.join(sourceDir, './subPackages')
+export const subPackages = './subPackages'
 
 /*****************************************************
  *                 Custom configure
