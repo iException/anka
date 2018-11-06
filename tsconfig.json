@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "lib": [
+            "es2015",
+            "es2015.promise"
+        ],
+        "types": [
+            "node"
+        ],
+        "resolveJsonModule": true
+    },
+    "include": [
+        "src/**/*.ts",
+        "./package.json",
+        "./types/index.d.ts",
+        "./types/glob.d.ts",
+        "./types/cfonts.d.ts",
+        "./types/validate-npm-package-name.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}

@@ -22,23 +22,31 @@ WeChat miniprogram helper
 ## Usage
 
 ```shell
+
+    _     _  _   _  _     _
+   /_\   | \| | | |/ /   /_\
+  / _ \  | .` | | ' <   / _ \
+ /_/ \_\ |_|\_| |_|\_\ /_/ \_\
+
+
+  Version: 1.0.0
+
   Usage:  <command> [options]
 
   Options:
 
-    -V, --version                     output the version number
-    -v                                --version
-    -h, --help                        output usage information
+    --debug                             enable debug mode
+    --quiet                             hide compile log
+    -V, --version                       output the version number
+    -h, --help                          output usage information
 
   Commands:
 
-    dev                               开发模式
-    init [options] [projectName]      创建小程序项目
-    build                             构建模式
-    page [options] [targetPage]       创建小程序页面
-    component [componentName]         创建小程序组件
-    add [options] [componentName]     注册组件
-    remove [options] [componentName]  移除组件
+    prod                                Production mode
+    dev [pages...]                      Development Mode
+    new-page [options] <pages...>       Create a miniprogram page
+    new-cmpt [options] <components...>  Create a miniprogram component
+    enroll [options] <components...>    Enroll a miniprogram component
 ```
 
 ## Config

@@ -1,0 +1,9 @@
+import * as chokidar from 'chokidar'
+
+export default function (dir: string | string[], options?: chokidar.WatchOptions) {
+    return chokidar.watch(dir, {
+        persistent: true,
+        ignoreInitial: true,
+        ...options
+    })
+}

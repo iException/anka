@@ -1,1 +1,1 @@
-<view>component: <%= name %></view>
+<view>component: <%= componentName %></view>
