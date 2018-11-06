@@ -31,7 +31,7 @@ declare namespace glob {
         mark?: boolean;
         nosort?: boolean;
         stat?: boolean;
-        silent?: boolean;
+        quiet?: boolean;
         strict?: boolean;
         cache?: { [path: string]: boolean | 'DIR' | 'FILE' | ReadonlyArray<string> };
         statCache?: { [path: string]: false | { isDirectory(): boolean} | undefined };

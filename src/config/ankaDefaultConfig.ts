@@ -29,14 +29,27 @@ export const outputDir = './dist'
  * The path where WeChat miniprogram pages exist.
  * @default './src/pages'
  */
-export const pages = path.join(sourceDir, 'pages')
+export const pages = path.join(sourceDir, './pages')
 
 /**
  * The path where WeChat miniprogram components exist.
  * @default './src/components'
  */
-export const components = path.join(sourceDir, 'components')
+export const components = path.join(sourceDir, './components')
 
+/**
+ * Template for creating page and component.
+ */
+export const template = {
+    page: path.join(__dirname, '../template/page'),
+    component: path.join(__dirname, '../template/component')
+}
+
+/**
+ * The path where WeChat miniprogram subpackages exist.
+ * @default './src/subPackages'
+ */
+export const subPackages = path.join(sourceDir, './subPackages')
 
 /*****************************************************
  *                 Custom configure
@@ -46,7 +59,7 @@ export const components = path.join(sourceDir, 'components')
  * Whether to output compile information.
  * @default false
  */
-export const silent = false
+export const quiet = false
 
 /**
  * Anka development mode.

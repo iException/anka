@@ -13,10 +13,13 @@ if (process.argv.indexOf('--debug') > -1) {
     config.ankaConfig.debug = true
 }
 
-logger.info('Launching...')
+if (process.argv.indexOf('--slient') > -1) {
+    config.ankaConfig.quiet = true
+}
 
 commander
     .option('--debug', 'enable debug mode')
+    .option('--quiet', 'hide compile log')
     .version(pkgJson.version)
     .usage('<command> [options]')
 

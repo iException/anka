@@ -1,1 +1,1 @@
-<view>page: <%= name %></view>
+<view>page: <%= pageName %></view>

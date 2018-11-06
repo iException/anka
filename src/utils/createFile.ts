@@ -1,6 +1,6 @@
 import {
     readFile
-} from './editor'
+} from './fs'
 import * as path from 'path'
 import * as fs from 'fs-extra'
 import File from '../core/class/File'

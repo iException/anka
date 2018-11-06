@@ -10,14 +10,14 @@ import * as utils from '../../utils'
  * A compilation task
  */
 export default class Compilation {
-    config: object
+    config: CompilerConfig
     readonly compiler: Compiler
     id: number        // Unique，for each Compilation
     file: File
     sourceFile: string
     destroyed: boolean
 
-    constructor (file: File | string, conf: object, compiler: Compiler) {
+    constructor (file: File | string, conf: CompilerConfig, compiler: Compiler) {
         this.compiler = compiler
         this.config = conf
         this.id = Compiler.compilationId++
@@ -76,7 +76,7 @@ export default class Compilation {
         await this.compiler.emit('before-compile', this)
         // Do something else.
         await this.compiler.emit('after-compile', this)
-        utils.logger.info('Compile',  this.file.sourceFile.replace(config.cwd, ''))
+        !this.config.ankaConfig.quiet &&  utils.logger.info('Compile',  this.file.sourceFile.replace(config.cwd, ''))
     }
 
     /**

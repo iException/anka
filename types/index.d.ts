@@ -36,10 +36,24 @@ declare type AnkaConfig = {
     components: string
 
     /**
+     * Template for creating page and component.
+     */
+    template: {
+        page: string
+        component: string
+    }
+
+    /**
+     * The path where WeChat miniprogram subpackages exist.
+     * @default './src/subPackages'
+     */
+    subPackages: string
+
+    /**
      * Whether to output compile information.
      * @default false
      */
-    silent: boolean
+    quiet: boolean
 
     /**
      * Anka development mode.
@@ -64,7 +78,9 @@ declare type AnkaConfig = {
     plugins: PluginsConfigration
 }
 
-declare type ProjectConfig = object
+declare type ProjectConfig = {
+    [key: string]: any
+}
 
 declare type Matcher = {
     match: RegExp,

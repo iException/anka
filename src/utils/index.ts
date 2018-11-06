@@ -1,9 +1,10 @@
-export * from './editor'
+export * from './fs'
 export { default as logger } from './logger'
 export {
     createFile,
     createFileSync,
 } from './createFile'
+export { default as FsEditor } from './editor'
 export { default as resolveModule } from './resolveModule'
 export { default as resolveConfig } from './resolveConfig'
 export { default as callPromiseInChain } from './callPromiseInChain'

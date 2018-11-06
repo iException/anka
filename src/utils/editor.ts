@@ -1,36 +1,40 @@
-import * as Glob from 'glob'
-import * as fs from 'fs-extra'
-const glob = require('glob')
+import { Options as TemplateOptions } from 'ejs'
+import { memFsEditor as MemFsEditor } from 'mem-fs-editor'
 
-export function readFile (sourceFilePath: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-        fs.readFile(sourceFilePath, (err, buffer) => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve(buffer)
-            }
-        })
-    })
-}
+const memFs = require('mem-fs')
+const memFsEditor = require('mem-fs-editor')
 
-export function writeFile (targetFilePath: string, content: Content): Promise<undefined> {
-    return new Promise((resolve, reject) => {
-        fs.writeFile(targetFilePath, content, err => {
-            if (err) throw err
-            resolve()
-        })
-    })
-}
+export default class FsEditor {
+    editor: MemFsEditor.Editor
+    constructor () {
+        const store = memFs.create()
 
-export function searchFiles (scheme: string, options?: Glob.IOptions): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-        glob(scheme, options, (err: (Error | null), files: Array<string>): void => {
-            if (err) {
-                reject(err)
-            } else {
-                resolve(files)
-            }
+        this.editor = memFsEditor.create(store)
+    }
+
+    copy (from: string, to: string, context: object, templateOptions?: TemplateOptions, copyOptions?: MemFsEditor.CopyOptions): void {
+        this.editor.copyTpl(from, to, context, templateOptions, copyOptions)
+    }
+
+    write (filepath: string, contents: MemFsEditor.Contents): void {
+        this.editor.write(filepath, contents)
+    }
+
+    writeJSON (filepath: string, contents: any, replacer?: MemFsEditor.ReplacerFunc, space?: MemFsEditor.Space): void {
+        this.editor.writeJSON(filepath, contents, replacer, space)
+    }
+
+    read (filepath: string, options?: { raw: boolean, defaults: string }): string {
+        return this.editor.read(filepath, options)
+    }
+
+    readJSON (filepath: string, defaults?: any): void {
+        this.editor.readJSON(filepath, defaults)
+    }
+
+    save (): Promise<any> {
+        return new Promise(resolve => {
+            this.editor.commit(resolve)
         })
-    })
+    }
 }

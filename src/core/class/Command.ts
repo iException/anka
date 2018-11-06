@@ -2,7 +2,7 @@ import Compiler from './Compiler'
 
 export default abstract class Command {
     public command: string
-    public options: Array<unknown>
+    public options: Array<Array<string>>
     public alias: string
     public usage: string
     public description: string
@@ -36,7 +36,7 @@ export default abstract class Command {
     }
 
     protected setOptions (...options: Array<string>): void {
-        this.options = this.options.concat(options)
+        this.options.push(options)
     }
 
     protected setExamples (...example: Array<string>): void {

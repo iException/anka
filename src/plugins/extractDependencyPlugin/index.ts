@@ -1,7 +1,3 @@
-import {
-    File,
-    Compiler
-} from '../../core'
 import * as path from 'path'
 import * as acorn from 'acorn'
 import * as utils from '../../utils'
