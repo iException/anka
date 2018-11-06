@@ -1,5 +1,4 @@
 import * as fs from 'fs'
-import * as _ from 'lodash'
 import * as path from 'path'
 import config  from '../config'
 import * as utils from '../utils'
@@ -55,26 +54,13 @@ export default class CreateComponentCommand extends Command {
         const componentPath = component.split(path.sep).length === 1 ?
             path.join(ankaConfig.components, component, component) :
             component
-        const componentName = componentPath.split(path.sep).pop()
+        const componentName = path.basename(componentPath)
         const context = {
             componentName
         }
         const absolutePath = root ?
             path.join(config.srcDir, ankaConfig.subPackages, root, componentPath) :
             path.join(config.srcDir, componentPath)
-
-        if (!projectConfig.usingComponents) {
-            projectConfig.usingComponents = {}
-        }
-
-        // if (global){
-        //     if (projectConfig.usingComponents[componentName]) {
-        //         logger.warn('The component already exists in app.json', componentName)
-        //         return
-        //     }
-        //     projectConfig.usingComponents[componentName] = path.relative(ankaConfig.sourceDir, componentPath)
-        //     editor.writeJSON(appConfigPath, projectConfig, null, 4)
-        // }
 
         if (fs.existsSync(path.join(path.dirname(absolutePath), componentName + '.json'))) {
             logger.warn('The component already exists', absolutePath)

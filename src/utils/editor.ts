@@ -21,7 +21,7 @@ export default class FsEditor {
     }
 
     writeJSON (filepath: string, contents: any, replacer?: MemFsEditor.ReplacerFunc, space?: MemFsEditor.Space): void {
-        this.editor.writeJSON(filepath, contents, replacer, space)
+        this.editor.writeJSON(filepath, contents, replacer || null, space = 4)
     }
 
     read (filepath: string, options?: { raw: boolean, defaults: string }): string {

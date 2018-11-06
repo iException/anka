@@ -51,7 +51,7 @@ export default class CreatePageCommand extends Command {
         const CwdRegExp = new RegExp(`^${config.cwd}`)
         const pagePath = page.split(path.sep).length === 1 ?
             path.join(ankaConfig.pages, page, page) : page
-        const pageName = pagePath.split(path.sep).pop()
+        const pageName = path.basename(pagePath)
         const context = {
             pageName
         }
