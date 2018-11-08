@@ -1,6 +1,7 @@
+import * as fs from 'fs-extra'
+import config from '../../config'
 import * as utils from '../../utils'
 import logger from '../../utils/logger'
-import * as fs from 'fs-extra'
 
 const { writeFile } = utils
 
@@ -10,7 +11,13 @@ export default <Plugin>function (this: PluginInjection) {
 
         // TODO: Use mem-fs
         fs.ensureFile(file.targetFile).then(() => {
-            return writeFile(file.targetFile, file.content)
+            const task = [
+                writeFile(file.targetFile, file.content)
+            ]
+            if (config.ankaConfig.devMode && file.sourceMap) {
+                task.push(writeFile(`${file.targetFile}.map`, file.sourceMap))
+            }
+            return Promise.all(task)
         }).then(() => {
             compilation.destroy()
             cb()

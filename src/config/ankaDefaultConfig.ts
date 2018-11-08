@@ -6,8 +6,8 @@ import styleParser from '../parsers/styleParser'
 import scriptParser from '../parsers/scriptParser'
 import templateParser from '../parsers/templateParser'
 import saveFilePlugin from '../plugins/saveFilePlugin'
+import typescriptParser from '../parsers/typescriptParser'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
-
 
 /*****************************************************
  *                   Danger zone
@@ -94,6 +94,15 @@ export const parsers: ParsersConfigration = [
         parsers: [
             {
                 parser: sassParser,
+                options: {}
+            }
+        ]
+    },
+    {
+        match: /.*\.(ts|typescript)$/,
+        parsers: [
+            {
+                parser: typescriptParser,
                 options: {}
             }
         ]

@@ -17,6 +17,7 @@ export default class DevCommand extends Command {
         )
 
         this.$compiler = new Compiler()
+        this.$compiler.config.ankaConfig.devMode = true
     }
 
     async action (pages?: Array<string>, options?: DevCommandOpts) {
