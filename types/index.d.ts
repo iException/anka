@@ -182,6 +182,7 @@ declare class File {
     public dirname: string
     public basename: string
     public extname: string
+    public isInSrcDir?: boolean
 
     constructor (option: FileConstructorOption)
 

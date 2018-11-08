@@ -3,6 +3,7 @@ import * as path from 'path'
 import sassParser from '../parsers/sassParser'
 import fileParser from '../parsers/fileParser'
 import styleParser from '../parsers/styleParser'
+import babelParser from '../parsers/babelParser'
 import scriptParser from '../parsers/scriptParser'
 import templateParser from '../parsers/templateParser'
 import saveFilePlugin from '../plugins/saveFilePlugin'
@@ -75,7 +76,7 @@ export const parsers: ParsersConfigration = [
         match: /.*\.(js|es)$/,
         parsers: [
             {
-                parser: scriptParser,
+                parser: babelParser,
                 options: {}
             }
         ]

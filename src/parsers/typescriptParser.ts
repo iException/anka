@@ -5,8 +5,7 @@ import File from '../core/class/File'
 
 const { logger } = utils
 
-
-
+let tsConfig = <ts.TranspileOptions>null
 /**
  * Typescript file parser.
  *
@@ -15,7 +14,10 @@ const { logger } = utils
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, callback?: Function) {
     file.content = file.content instanceof Buffer ? file.content.toString() : file.content
 
-    const tsConfig = <ts.TranspileOptions>utils.resolveConfig(['tsconfig.json', 'tsconfig.js'], config.cwd)
+    if (!tsConfig) {
+        tsConfig = <ts.TranspileOptions>utils.resolveConfig(['tsconfig.json', 'tsconfig.js'], config.cwd)
+    }
+
     const result = ts.transpileModule(file.content, {
         compilerOptions: tsConfig.compilerOptions,
         fileName: file.sourceFile
