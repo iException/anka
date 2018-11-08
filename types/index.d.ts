@@ -237,3 +237,10 @@ declare module 'acorn-walk' {
 declare module 'postcss-load-config' {
     export default function (options: object): any
 }
+
+declare module 'download-git-repo' {
+    function download (repo: string, path: string, options: any, callback: (err: Error) => void): void
+    export default download
+}
+
+

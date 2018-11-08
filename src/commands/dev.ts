@@ -7,7 +7,7 @@ export default class DevCommand extends Command {
     constructor () {
         super(
             'dev [pages...]',
-            'Development Mode'
+            'Development mode'
         )
 
         this.setExamples(
