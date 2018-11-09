@@ -1,7 +1,13 @@
 import config from '../config'
 import * as ts from 'typescript'
 import * as utils from '../utils'
-import File from '../core/class/File'
+
+import {
+    File,
+    Parser,
+    Compilation,
+    ParserInjection
+} from '../../types/types'
 
 const { logger } = utils
 
@@ -13,6 +19,9 @@ let tsConfig = <ts.TranspileOptions>null
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, callback?: Function) {
     file.content = file.content instanceof Buffer ? file.content.toString() : file.content
+    const sourceMap =  {
+        sourcesContent: [file.content]
+    }
 
     if (!tsConfig) {
         tsConfig = <ts.TranspileOptions>utils.resolveConfig(['tsconfig.json', 'tsconfig.js'], config.cwd)
@@ -26,7 +35,10 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
     try {
         file.content = result.outputText
         if (config.ankaConfig.devMode) {
-            file.sourceMap = result.sourceMapText
+            file.sourceMap = {
+                ...JSON.parse(result.sourceMapText),
+                ...sourceMap
+            }
         }
         file.updateExt('.js')
     } catch (err) {

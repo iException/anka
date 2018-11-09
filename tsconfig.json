@@ -22,8 +22,9 @@
         "src/**/*.ts",
         "./package.json",
         "./types/index.d.ts",
+        "./types/types.d.ts",
         "./types/glob.d.ts",
-        "./types/cfonts.d.ts",
+        "./types/modules.d.ts",
         "./types/validate-npm-package-name.d.ts"
     ],
     "exclude": [

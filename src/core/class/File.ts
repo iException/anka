@@ -1,7 +1,12 @@
 import * as path from 'path'
-import * as acorn from 'acorn'
 import * as fs from 'fs-extra'
 import config from '../../config'
+import * as t from '@babel/types'
+
+import {
+    Content,
+    FileConstructorOption
+} from '../../../types/types'
 
 const replaceExt = require('replace-ext')
 
@@ -9,7 +14,7 @@ export default class File {
     public sourceFile: string
     public content: Content
     public targetFile: string
-    public ast?: acorn.Node
+    public ast?: t.File
     public sourceMap?: Content
     public isInSrcDir?: boolean
 

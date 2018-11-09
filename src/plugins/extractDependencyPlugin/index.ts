@@ -1,8 +1,15 @@
 import * as path from 'path'
-import * as acorn from 'acorn'
+import * as t from '@babel/types'
 import * as utils from '../../utils'
-import * as escodegen from 'escodegen'
-import * as acornWalker from 'acorn-walk'
+import * as babel from '@babel/core'
+import traverse from '@babel/traverse'
+
+import {
+    Plugin,
+    Compilation,
+    PluginHandler,
+    PluginInjection
+} from '../../../types/types'
 
 const dependencyPool = new Map<string, string>()
 
@@ -18,44 +25,50 @@ export default <Plugin> function (this: PluginInjection) {
         // Only resolve js file.
         if (file.extname === '.js') {
             if (file.ast === void (0)) {
-                file.ast = acorn.parse(
+                file.ast = <t.File>babel.parse(
                     file.content instanceof Buffer ? file.content.toString() : file.content,
                     {
+                        babelrc: false,
                         sourceType: 'module'
                     }
                 )
             }
-            acornWalker.simple (file.ast, {
-                ImportDeclaration (node: any) {
-                    const source = node.source
 
-                    if (
-                        source &&
-                        source.value &&
-                        source.type === 'Literal' &&
-                        typeof source.value === 'string'
-                    ) {
-                        resolve(source, file.sourceFile, file.targetFile, localDependencyPool)
+            traverse(file.ast, {
+                enter (path) {
+                    if (path.isImportDeclaration()) {
+                        const node = path.node
+                        const source = node.source
+
+                        if (
+                            source &&
+                            source.value &&
+                            typeof source.value === 'string'
+                        ) {
+                            resolve(source, file.sourceFile, file.targetFile, localDependencyPool)
+                        }
                     }
-                },
-                CallExpression (node: any) {
-                    const callee = node.callee
-                    const args = node.arguments
 
-                    if (
-                        args &&
-                        callee &&
-                        args[0] &&
-                        args[0].value &&
-                        callee.name === 'require' &&
-                        args[0].type === 'Literal' &&
-                        typeof args[0].value === 'string'
-                    ) {
-                        resolve(args[0], file.sourceFile, file.targetFile, localDependencyPool)
+                    if (path.isCallExpression()) {
+                        const node = path.node
+                        const callee = <t.Identifier>node.callee
+                        const args = <t.StringLiteral[]>node.arguments
+
+                        if (
+                            args &&
+                            callee &&
+                            args[0] &&
+                            args[0].value &&
+                            callee.name === 'require' &&
+                            typeof args[0].value === 'string'
+                        ) {
+                            resolve(args[0], file.sourceFile, file.targetFile, localDependencyPool)
+                        }
                     }
                 }
             })
-            file.content = escodegen.generate(file.ast)
+
+            file.content = babel.transformFromAstSync(file.ast).code
 
             const dependencyList = Array.from(localDependencyPool.keys()).filter(dependency => !dependencyPool.has(dependency))
 

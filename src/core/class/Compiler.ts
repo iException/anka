@@ -10,6 +10,14 @@ import Compilation from './Compilation'
 import callPromiseInChain from '../../utils/callPromiseInChain'
 import asyncFunctionWrapper from '../../utils/asyncFunctionWrapper'
 
+import {
+    Parser,
+    ParserOptions,
+    PluginHandler,
+    PluginOptions,
+    CompilerConfig
+} from '../../../types/types'
+
 const { logger } = utils
 
 /**

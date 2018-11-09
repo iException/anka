@@ -4,6 +4,12 @@ import * as utils from '../utils'
 import * as babel from '@babel/core'
 import File from '../core/class/File'
 
+import {
+    Parser,
+    Compilation,
+    ParserInjection
+} from '../../types/types'
+
 let babelConfig = <babel.TransformOptions>null
 
 /**
@@ -18,14 +24,15 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
         file.content = file.content instanceof Buffer ? file.content.toString() : file.content
 
-        const result = babel.transform(file.content, {
+        const result = babel.transformSync(file.content, {
             babelrc: false,
             filename: file.sourceFile,
             sourceType: 'module',
-            sourceMaps: config.ankaConfig.devMode ? 'inline' : false,
+            sourceMaps: config.ankaConfig.devMode,
             ...babelConfig
         })
 
+        file.sourceMap = JSON.stringify(result.map)
         file.content = result.code
     }
 

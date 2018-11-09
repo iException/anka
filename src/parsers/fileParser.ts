@@ -1,6 +1,12 @@
 import * as path from 'path'
 import config from '../config'
-import File from '../core/class/File'
+
+import {
+    File,
+    Parser,
+    Compilation,
+    ParserInjection
+} from '../../types/types'
 
 /**
  * Unknow type file parser.
