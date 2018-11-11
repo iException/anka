@@ -23,6 +23,7 @@ export default class DevCommand extends Command {
     async action (pages?: Array<string>, options?: DevCommandOpts) {
         const startupTime = Date.now()
         this.initCompiler()
+        await this.$compiler.clean()
         await this.$compiler.launch()
         await this.$compiler.watchFiles()
         logger.success(`Startup: ${Date.now() - startupTime}ms`, `Anka is waiting for changes...`)

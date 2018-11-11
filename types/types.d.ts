@@ -131,6 +131,11 @@ export class Compiler {
 
     emit (event: string, compilation: Compilation): Promise<any>
 
+    /**
+     * Clean dist directory.
+     */
+    clean (): Promise<void>
+
     launch (): Promise<any>
 
     watchFiles (): Promise<any>

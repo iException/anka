@@ -12,6 +12,7 @@ import {
 } from '../../../types/types'
 
 const dependencyPool = new Map<string, string>()
+const resovleModuleName = require('require-package-name')
 
 export default <Plugin> function (this: PluginInjection) {
     const compiler = this.getCompiler()
@@ -24,6 +25,7 @@ export default <Plugin> function (this: PluginInjection) {
 
         // Only resolve js file.
         if (file.extname === '.js') {
+
             if (file.ast === void (0)) {
                 file.ast = <t.File>babel.parse(
                     file.content instanceof Buffer ? file.content.toString() : file.content,
@@ -86,11 +88,16 @@ export default <Plugin> function (this: PluginInjection) {
     function resolve (node: any, sourceFile: string, targetFile: string, localDependencyPool: Map<string, string>) {
         const sourceBaseName = path.dirname(sourceFile)
         const targetBaseName = path.dirname(targetFile)
-        const dependency = utils.resolveModule(node.value, {
-            paths: [sourceBaseName]
-        })
+        const moduleName = resovleModuleName(node.value)
 
-        if (testNodeModules.test(dependency)) {
+
+        if (utils.isNpmDependency(moduleName) || testNodeModules.test(sourceFile)) {
+            const dependency = utils.resolveModule(node.value, {
+                paths: [sourceBaseName]
+            })
+
+            if (!dependency) return
+
             const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
 
             node.value = path.relative(targetBaseName, distPath)

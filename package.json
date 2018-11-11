@@ -45,6 +45,7 @@
     "postcss": "^7.0.2",
     "postcss-load-config": "^2.0.0",
     "replace-ext": "^1.0.0",
+    "require-package-name": "^2.0.1",
     "typescript": "^3.1.6",
     "validate-npm-package-name": "^3.0.0"
   },

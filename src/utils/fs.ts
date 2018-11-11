@@ -2,6 +2,11 @@ import * as Glob from 'glob'
 import * as fs from 'fs-extra'
 const glob = require('glob')
 
+import {
+    Content
+} from '../../types/types'
+
+
 export function readFile (sourceFilePath: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
         fs.readFile(sourceFilePath, (err, buffer) => {

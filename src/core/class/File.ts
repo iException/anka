@@ -32,15 +32,15 @@ export default class File {
     }
 
     get dirname () {
-        return path.dirname(this.sourceFile)
+        return path.dirname(this.targetFile)
     }
 
     get basename () {
-        return path.basename(this.sourceFile)
+        return path.basename(this.targetFile)
     }
 
     get extname () {
-        return path.extname(this.sourceFile)
+        return path.extname(this.targetFile)
     }
 
     async saveTo (path: string): Promise<void> {
