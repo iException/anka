@@ -2,6 +2,13 @@ import * as Postcss from 'postcss'
 import postcssrc from 'postcss-load-config'
 import postcssWxImport from './postcssWximport'
 
+import {
+    File,
+    Parser,
+    Compilation,
+    ParserInjection
+} from '../../../types/types'
+
 const postcss = require('postcss')
 const postcssConfig: any = {}
 

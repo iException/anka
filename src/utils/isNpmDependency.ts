@@ -6,7 +6,7 @@ declare type ValidateNpmPackageName = {
 const validate = require('validate-npm-package-name')
 
 export default function (required: string = '') {
-    const result = <ValidateNpmPackageName>validate(required.split('/').slice(0, 2).join('/'))
+    const result = <ValidateNpmPackageName>validate(required)
 
     return result.validForNewPackages || result.validForOldPackages
 }

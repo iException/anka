@@ -1,7 +1,16 @@
+import * as fs from 'fs-extra'
+import config from '../../config'
 import * as utils from '../../utils'
 import logger from '../../utils/logger'
-import * as fs from 'fs-extra'
 
+import {
+    Plugin,
+    Compilation,
+    PluginHandler,
+    PluginInjection
+} from '../../../types/types'
+
+const inlineSourceMapComment = require('inline-source-map-comment')
 const { writeFile } = utils
 
 export default <Plugin>function (this: PluginInjection) {
@@ -10,6 +19,15 @@ export default <Plugin>function (this: PluginInjection) {
 
         // TODO: Use mem-fs
         fs.ensureFile(file.targetFile).then(() => {
+            if (config.ankaConfig.devMode && file.sourceMap) {
+                if (file.content instanceof Buffer) {
+                    file.content = file.content.toString()
+                }
+                file.content = file.content + '\r\n\r\n' + inlineSourceMapComment(file.sourceMap, {
+                    block: true,
+                    sourcesContent: true
+                })
+            }
             return writeFile(file.targetFile, file.content)
         }).then(() => {
             compilation.destroy()

@@ -1,7 +1,13 @@
 import config from '../config'
 import * as utils from '../utils'
 import * as sass from 'node-sass'
-import File from '../core/class/File'
+
+import {
+    File,
+    Parser,
+    Compilation,
+    ParserInjection
+} from '../../types/types'
 
 /**
  * Sass file parser.

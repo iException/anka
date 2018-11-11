@@ -1,6 +1,14 @@
 import Compiler from './Compiler'
 import config from '../../config'
-import Compilation from './Compilation'
+
+import {
+    AnkaConfig,
+    ParserOptions,
+    ProjectConfig,
+    PluginHandler,
+    PluginOptions,
+    CompilerConfig
+} from '../../../types/types'
 
 export abstract class Injection {
     compiler: Compiler

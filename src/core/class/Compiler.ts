@@ -3,6 +3,7 @@ import {
     PluginInjection
 } from './Injection'
 import File from './File'
+import * as path from 'path'
 import * as fs from 'fs-extra'
 import config from '../../config'
 import * as utils from '../../utils'
@@ -10,7 +11,16 @@ import Compilation from './Compilation'
 import callPromiseInChain from '../../utils/callPromiseInChain'
 import asyncFunctionWrapper from '../../utils/asyncFunctionWrapper'
 
+import {
+    Parser,
+    ParserOptions,
+    PluginHandler,
+    PluginOptions,
+    CompilerConfig
+} from '../../../types/types'
+
 const { logger } = utils
+const del = require('del')
 
 /**
  * The core compiler.
@@ -74,6 +84,14 @@ export default class Compiler {
         })
 
         await callPromiseInChain(tasks, compilation)
+    }
+
+    /**
+     * Clean dist directory.
+     */
+    async clean (): Promise<void> {
+        await del([path.join(config.distDir, '**/*')])
+        logger.success('Clean', config.distDir)
     }
 
     /**

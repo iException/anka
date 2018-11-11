@@ -1,10 +1,15 @@
-import {
-    ParserInjection
-} from './Injection'
 import File from './File'
 import config from '../../config'
 import Compiler from './Compiler'
 import * as utils from '../../utils'
+
+import {
+    Parser,
+    Matcher,
+    PluginHandler,
+    PluginOptions,
+    CompilerConfig
+} from '../../../types/types'
 
 /**
  * A compilation task
@@ -54,7 +59,7 @@ export default class Compilation {
 
         const file = this.file
         const parsers = <Parser[]>this.compiler.parsers.filter((matchers: Matcher) => {
-            return matchers.match.test(file.targetFile)
+            return matchers.match.test(file.sourceFile)
         }).map((matchers: Matcher) => {
             return matchers.parsers
         }).reduce((prev, next) => {

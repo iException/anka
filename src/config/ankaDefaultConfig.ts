@@ -3,11 +3,12 @@ import * as path from 'path'
 import sassParser from '../parsers/sassParser'
 import fileParser from '../parsers/fileParser'
 import styleParser from '../parsers/styleParser'
+import babelParser from '../parsers/babelParser'
 import scriptParser from '../parsers/scriptParser'
 import templateParser from '../parsers/templateParser'
 import saveFilePlugin from '../plugins/saveFilePlugin'
+import typescriptParser from '../parsers/typescriptParser'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
-
 
 /*****************************************************
  *                   Danger zone
@@ -75,7 +76,7 @@ export const parsers: ParsersConfigration = [
         match: /.*\.(js|es)$/,
         parsers: [
             {
-                parser: scriptParser,
+                parser: babelParser,
                 options: {}
             }
         ]
@@ -94,6 +95,15 @@ export const parsers: ParsersConfigration = [
         parsers: [
             {
                 parser: sassParser,
+                options: {}
+            }
+        ]
+    },
+    {
+        match: /.*\.(ts|typescript)$/,
+        parsers: [
+            {
+                parser: typescriptParser,
                 options: {}
             }
         ]
