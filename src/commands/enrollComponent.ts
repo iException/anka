@@ -5,6 +5,10 @@ import * as utils from '../utils'
 import { Command, Compiler } from '../core'
 import { default as FsEditorConstructor } from '../utils/editor'
 
+import {
+    CompilerConfig
+} from '../../types/types'
+
 const { logger, FsEditor } = utils
 
 export type EnrollComponentCommandOpts = {
