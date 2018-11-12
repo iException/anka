@@ -96,7 +96,7 @@ export default class Compiler {
             `!${path.join(config.distDir, 'app.json')}`,
             `!${path.join(config.distDir, 'project.config.json')}`
         ])
-        logger.success('Clean', config.distDir)
+        logger.success('Clean workshop', config.distDir)
     }
 
     /**
