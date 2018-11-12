@@ -2,9 +2,9 @@ import config from './config'
 import { logger } from './utils'
 import * as cfonts from 'cfonts'
 import commands from './commands'
-import * as commander from 'commander'
 import Compiler from './core/class/Compiler'
 
+const commander = require('commander')
 const pkgJson = require('../package.json')
 
 require('source-map-support').install()
