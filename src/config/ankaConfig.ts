@@ -2,6 +2,10 @@ import * as path from 'path'
 import resolveConfig from '../utils/resolveConfig'
 import * as ankaDefaultConfig from './ankaDefaultConfig'
 
+import {
+    AnkaConfig
+} from '../../types/types'
+
 const cwd = process.cwd()
 const customConfig = <AnkaConfig>resolveConfig(['anka.config.js', 'anka.config.json'])
 
