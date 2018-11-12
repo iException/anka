@@ -30,20 +30,20 @@ export class Logger {
     }
 
     error (title: string = '', msg: string = '', err?: any) {
-        this.log(chalk.red('✘'), chalk.reset(title), chalk.grey(msg))
-        err && console.log(err)
+        this.log(chalk.redBright(title), chalk.grey(msg))
+        err && console.log(chalk.redBright(err || err.stack))
     }
 
     info (title: string = '', msg: string = '') {
-        this.log(chalk.cyan('○'), chalk.reset(title), chalk.grey(msg))
+        this.log(chalk.reset(title), chalk.grey(msg))
     }
 
     warn (title: string = '', msg: string = '') {
-        this.log(chalk.yellow('⚠'), chalk.reset(title), chalk.grey(msg))
+        this.log(chalk.yellowBright(title), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
-        this.log(chalk.green('✔'), chalk.reset(title), chalk.grey(msg))
+        this.log(chalk.greenBright(title), chalk.grey(msg))
     }
 }
 

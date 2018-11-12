@@ -26,6 +26,6 @@ export default class DevCommand extends Command {
         await this.$compiler.clean()
         await this.$compiler.launch()
         await this.$compiler.watchFiles()
-        logger.success(`Startup: ${Date.now() - startupTime}ms`, `Anka is waiting for changes...`)
+        logger.success(`Startup: ${Date.now() - startupTime}ms 🎉 , Anka is waiting for changes...`)
     }
 }
