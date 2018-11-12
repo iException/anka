@@ -1,8 +1,10 @@
+import * as fs from 'fs'
 import * as path from 'path'
 import * as t from '@babel/types'
 import * as utils from '../../utils'
 import * as babel from '@babel/core'
 import traverse from '@babel/traverse'
+import codeGenerator from '@babel/generator'
 
 import {
     Plugin,
@@ -25,8 +27,8 @@ export default <Plugin> function (this: PluginInjection) {
 
         // Only resolve js file.
         if (file.extname === '.js') {
-
-            if (file.ast === void (0)) {
+            // console.log(file.sourceFile, file.ast ? 'object' : file.ast)
+            if (!file.ast) {
                 file.ast = <t.File>babel.parse(
                     file.content instanceof Buffer ? file.content.toString() : file.content,
                     {
@@ -70,7 +72,7 @@ export default <Plugin> function (this: PluginInjection) {
                 }
             })
 
-            file.content = babel.transformFromAstSync(file.ast).code
+            file.content = codeGenerator(file.ast).code
 
             const dependencyList = Array.from(localDependencyPool.keys()).filter(dependency => !dependencyPool.has(dependency))
 
@@ -89,7 +91,6 @@ export default <Plugin> function (this: PluginInjection) {
         const sourceBaseName = path.dirname(sourceFile)
         const targetBaseName = path.dirname(targetFile)
         const moduleName = resovleModuleName(node.value)
-
 
         if (utils.isNpmDependency(moduleName) || testNodeModules.test(sourceFile)) {
             const dependency = utils.resolveModule(node.value, {

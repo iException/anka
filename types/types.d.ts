@@ -184,7 +184,7 @@ export class File {
     public sourceFile: string
     public content: Content
     public targetFile: string
-    public ast?: t.File
+    public ast?: t.Node
     public sourceMap?: Content
     public dirname: string
     public basename: string
