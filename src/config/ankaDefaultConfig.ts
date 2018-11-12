@@ -10,6 +10,11 @@ import saveFilePlugin from '../plugins/saveFilePlugin'
 import typescriptParser from '../parsers/typescriptParser'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
 
+import {
+    ParsersConfigration,
+    PluginsConfigration
+} from '../../types/types'
+
 /*****************************************************
  *                   Danger zone
  *****************************************************/

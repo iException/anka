@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/10026019/44260701-d84b6e80-a247-11e8-9d79-5f82be615c84.png" width="300"/>
+  <img src="https://user-images.githubusercontent.com/10026019/48325653-9fb60800-e671-11e8-9e5f-46e625d8159f.png" width="300"/>
   <b>&nbsp;&nbsp;&nbsp;CLI</b>
 </p>
 
@@ -9,10 +9,11 @@
 	</a>
 </p>
 
-WeChat miniprogram helper
+WeChat miniprogram helper.
 
-- [Document](https://iexception.github.io/anka-quickstart/)
-- [Demo](https://github.com/iException/anka-quickstart)
+- [Demonstration](https://github.com/iException/anka-quickstart)
+- [Documentation](https://iexception.github.io/anka-doc/)
+
 ## Install
 
 ```
@@ -29,7 +30,7 @@ WeChat miniprogram helper
  /_/ \_\ |_|\_| |_|\_\ /_/ \_\
 
 
-  Version: 1.0.0
+  Version: 1.0.3
 
   Usage:  <command> [options]
 

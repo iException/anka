@@ -26,6 +26,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
         const result = babel.transformSync(file.content, {
             babelrc: false,
+            ast: true,
             filename: file.sourceFile,
             sourceType: 'module',
             sourceMaps: config.ankaConfig.devMode,
@@ -34,6 +35,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
         file.sourceMap = JSON.stringify(result.map)
         file.content = result.code
+        file.ast = result.ast
     }
 
     file.updateExt('.js')
