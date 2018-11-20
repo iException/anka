@@ -79,7 +79,7 @@ if (process.argv.length === 2) {
         colors: ['greenBright']
     })
 
-    console.log(Logo.string + '  Version: ' + pkgJson.version)
+    console.log(Logo.string.replace(/(\s+)$/, ` ${pkgJson.version}\r\n`))
     commander.outputHelp()
 }
 

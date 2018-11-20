@@ -93,7 +93,7 @@ export default <Plugin> function (this: PluginInjection) {
 
         if (utils.isNpmDependency(moduleName) || testNodeModules.test(sourceFile)) {
             const dependency = utils.resolveModule(node.value, {
-                paths: [sourceFile]
+                paths: [sourceBaseName]
             })
 
             if (!dependency) return
