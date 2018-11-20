@@ -18,6 +18,7 @@ export default <Plugin> function (this: PluginInjection) {
     const utils = this.getUtils()
     const compiler = this.getCompiler()
     const config = this.getSystemConfig()
+    const testSrcDir = new RegExp(`^${config.srcDir}`)
     const testNodeModules = new RegExp(`^${config.sourceNodeModules}`)
 
     this.on('before-compile', function (compilation: Compilation, cb: Function) {
@@ -96,7 +97,8 @@ export default <Plugin> function (this: PluginInjection) {
                 paths: [sourceBaseName]
             })
 
-            if (!dependency) return
+            // In case `require('a')`, `a` is local file in src directory
+            if (!dependency || testSrcDir.test(dependency)) return
 
             const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
 
