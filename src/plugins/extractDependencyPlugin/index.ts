@@ -1,7 +1,5 @@
-import * as fs from 'fs'
 import * as path from 'path'
 import * as t from '@babel/types'
-import * as utils from '../../utils'
 import * as babel from '@babel/core'
 import traverse from '@babel/traverse'
 import codeGenerator from '@babel/generator'
@@ -17,6 +15,7 @@ const dependencyPool = new Map<string, string>()
 const resovleModuleName = require('require-package-name')
 
 export default <Plugin> function (this: PluginInjection) {
+    const utils = this.getUtils()
     const compiler = this.getCompiler()
     const config = this.getSystemConfig()
     const testNodeModules = new RegExp(`^${config.sourceNodeModules}`)
@@ -94,7 +93,7 @@ export default <Plugin> function (this: PluginInjection) {
 
         if (utils.isNpmDependency(moduleName) || testNodeModules.test(sourceFile)) {
             const dependency = utils.resolveModule(node.value, {
-                paths: [sourceBaseName]
+                paths: [sourceFile]
             })
 
             if (!dependency) return

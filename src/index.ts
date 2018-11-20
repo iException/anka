@@ -1,4 +1,5 @@
 import config from './config'
+import * as semver from 'semver'
 import { logger } from './utils'
 import * as cfonts from 'cfonts'
 import commands from './commands'
@@ -8,6 +9,11 @@ const commander = require('commander')
 const pkgJson = require('../package.json')
 
 require('source-map-support').install()
+
+if (!semver.satisfies(semver.clean(process.version), pkgJson.engines.node)) {
+    logger.error('Required node version ' + pkgJson.engines.node)
+    process.exit(1)
+}
 
 if (process.argv.indexOf('--debug') > -1) {
     config.ankaConfig.debug = true
@@ -68,11 +74,12 @@ commands.forEach(command => {
 })
 
 if (process.argv.length === 2) {
-    cfonts.say('Anka', {
+    const Logo = cfonts.render('Anka', {
         font: 'simple',
         colors: ['greenBright']
     })
-    console.log('  Version: ' + pkgJson.version)
+
+    console.log(Logo.string + '  Version: ' + pkgJson.version)
     commander.outputHelp()
 }
 

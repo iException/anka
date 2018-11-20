@@ -1,6 +1,3 @@
-import * as path from 'path'
-import config from '../config'
-import * as utils from '../utils'
 import * as babel from '@babel/core'
 import File from '../core/class/File'
 
@@ -17,6 +14,9 @@ let babelConfig = <babel.TransformOptions>null
  * @for .js .es
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, cb: Function) {
+    const utils = this.getUtils()
+    const config = this.getSystemConfig()
+
     if (file.isInSrcDir) {
         if (!babelConfig) {
             babelConfig = <babel.TransformOptions>utils.resolveConfig(['babel.config.js'], config.cwd)

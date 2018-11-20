@@ -1,4 +1,4 @@
-export default function (fn: Function) {
+export default function (fn: Function): () => Promise<void> {
     return function (...params: Array<any>) {
         const limitation = params.length
 

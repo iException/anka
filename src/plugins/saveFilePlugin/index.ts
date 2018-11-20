@@ -1,7 +1,4 @@
 import * as fs from 'fs-extra'
-import config from '../../config'
-import * as utils from '../../utils'
-import logger from '../../utils/logger'
 
 import {
     Plugin,
@@ -11,9 +8,15 @@ import {
 } from '../../../types/types'
 
 const inlineSourceMapComment = require('inline-source-map-comment')
-const { writeFile } = utils
 
 export default <Plugin>function (this: PluginInjection) {
+    const utils = this.getUtils()
+    const config = this.getSystemConfig()
+    const {
+        logger,
+        writeFile
+    } = utils
+
     this.on('after-compile', <PluginHandler>function (compilation: Compilation, cb: Function) {
         const file = compilation.file
 

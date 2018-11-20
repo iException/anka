@@ -1,7 +1,9 @@
 import Compiler from './Compiler'
 import config from '../../config'
+import * as utils from '../../utils'
 
 import {
+    Utils,
     AnkaConfig,
     ParserOptions,
     ProjectConfig,
@@ -23,6 +25,10 @@ export abstract class Injection {
 
     getCompiler (): Compiler {
         return this.compiler
+    }
+
+    getUtils () {
+        return utils
     }
 
     getAnkaConfig (): AnkaConfig {

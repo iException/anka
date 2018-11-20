@@ -1,6 +1,4 @@
-import config from '../config'
 import * as ts from 'typescript'
-import * as utils from '../utils'
 
 import {
     File,
@@ -9,15 +7,18 @@ import {
     ParserInjection
 } from '../../types/types'
 
-const { logger } = utils
-
 let tsConfig = <ts.TranspileOptions>null
+
 /**
  * Typescript file parser.
  *
  * @for any file that does not matche parsers.
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, callback?: Function) {
+    const utils = this.getUtils()
+    const config = this.getSystemConfig()
+    const { logger } = utils
+
     file.content = file.content instanceof Buffer ? file.content.toString() : file.content
     const sourceMap =  {
         sourcesContent: [file.content]

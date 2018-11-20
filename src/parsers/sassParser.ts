@@ -1,5 +1,3 @@
-import config from '../config'
-import * as utils from '../utils'
 import * as sass from 'node-sass'
 
 import {
@@ -14,6 +12,9 @@ import {
  * @for any file that does not matche parsers.
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, callback?: Function) {
+    const utils = this.getUtils()
+    const config = this.getSystemConfig()
+
     file.content = file.content instanceof Buffer ? file.content.toString() : file.content
 
     sass.render({
