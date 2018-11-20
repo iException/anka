@@ -1,4 +1,4 @@
-export default function callPromiseInChain (list: Array<(...params: any[]) => Promise<any>> = [], ...params: Array<any>) {
+export default function callPromiseInChain (list: Array<(...params: any[]) => Promise<any>> = [], ...params: Array<any>): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!list.length)  {
             resolve()

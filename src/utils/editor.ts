@@ -6,6 +6,7 @@ const memFsEditor = require('mem-fs-editor')
 
 export default class FsEditor {
     editor: MemFsEditor.Editor
+
     constructor () {
         const store = memFs.create()
 

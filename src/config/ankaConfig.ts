@@ -17,5 +17,5 @@ export default {
         component: path.join(cwd, customConfig.template.component)
     } : ankaDefaultConfig.template,
     parsers: customConfig.parsers ? customConfig.parsers.concat(ankaDefaultConfig.parsers) : ankaDefaultConfig.parsers,
-    plugins: ankaDefaultConfig.plugins.concat(customConfig.plugins || [])
+    plugins: customConfig.plugins ? customConfig.plugins.concat(ankaDefaultConfig.plugins) : ankaDefaultConfig.plugins
 }

@@ -1,4 +1,5 @@
 import * as t from '@babel/types'
+import utils from './utils'
 
 type CompilerConfig = {
     cwd: string
@@ -207,6 +208,7 @@ export type FileConstructorOption = {
 }
 
 export class Injection {
+    getUtils(): Utils
     getCompiler (): Compiler
     getAnkaConfig (): AnkaConfig
     getSystemConfig (): CompilerConfig
@@ -237,3 +239,7 @@ export class PluginInjection extends Injection {
      */
     on (event: string, handler: PluginHandler): void
 }
+
+export type Utils = utils
+
+// export  utils = Utils
