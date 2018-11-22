@@ -105,10 +105,12 @@ export default class Compiler {
     async launch (): Promise<any> {
         logger.info('Launching...')
 
-        const filePaths: string[] = await utils.searchFiles(`${config.srcDir}/**/*`, {
+        const filePaths: string[] = await utils.searchFiles(`**/*`, {
+            cwd: config.srcDir,
             nodir: true,
             silent: false,
-            absolute: true
+            absolute: true,
+            ignore: config.ankaConfig.ignored
         })
         const files = await Promise.all(filePaths.map(file => {
             return utils.createFile(file)
@@ -131,7 +133,8 @@ export default class Compiler {
     watchFiles (): Promise<any> {
         return new Promise(resolve => {
             const watcher = utils.genFileWatcher(`${config.srcDir}/**/*`, {
-                followSymlinks: false
+                followSymlinks: false,
+                ignored: config.ankaConfig.ignored
             })
 
             watcher.on('add', async (fileName: string) => {
