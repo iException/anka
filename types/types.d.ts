@@ -79,6 +79,11 @@ export type AnkaConfig = {
      * Register plugin.
      */
     plugins: PluginsConfigration
+
+    /**
+     * Files that will be ignored in compilation.
+     */
+    ignored: IgnoredConfigration
 }
 
 export type ProjectConfig = {
@@ -104,6 +109,8 @@ export type PluginOptions = {
     plugin: Plugin,
     options?: object
 }
+
+export type IgnoredConfigration = string[]
 
 export type PluginsConfigration = PluginOptions[]
 

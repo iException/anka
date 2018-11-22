@@ -9,6 +9,12 @@ import {
 const cwd = process.cwd()
 const customConfig = <AnkaConfig>resolveConfig(['anka.config.js', 'anka.config.json'])
 
+function mergeArray <T>(...arrs: Array<T[]>): Array<T> {
+    return arrs.filter(arr => arr && arr.length).reduce((prev, next) => {
+        return prev.concat(next)
+    }, [])
+}
+
 export default {
     ...ankaDefaultConfig,
     ...customConfig,
@@ -16,6 +22,7 @@ export default {
         page: path.join(cwd, customConfig.template.page),
         component: path.join(cwd, customConfig.template.component)
     } : ankaDefaultConfig.template,
-    parsers: customConfig.parsers ? customConfig.parsers.concat(ankaDefaultConfig.parsers) : ankaDefaultConfig.parsers,
-    plugins: customConfig.plugins ? customConfig.plugins.concat(ankaDefaultConfig.plugins) : ankaDefaultConfig.plugins
+    parsers: mergeArray(customConfig.parsers, ankaDefaultConfig.parsers),
+    plugins: mergeArray(customConfig.plugins, ankaDefaultConfig.plugins),
+    ignored: mergeArray(customConfig.ignored, ankaDefaultConfig.ignored)
 }

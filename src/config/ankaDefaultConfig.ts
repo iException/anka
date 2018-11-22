@@ -11,6 +11,7 @@ import typescriptParser from '../parsers/typescriptParser'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
 
 import {
+    IgnoredConfigration,
     ParsersConfigration,
     PluginsConfigration
 } from '../../types/types'
@@ -135,6 +136,10 @@ export const plugins: PluginsConfigration = [
     }
 ]
 
+/**
+ * Files that will be ignored in compilation.
+ */
+export const ignored: IgnoredConfigration = []
 
 /*****************************************************
  *               experimental configure
