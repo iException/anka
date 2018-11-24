@@ -38,9 +38,13 @@ export default class Compilation {
     }
 
     async run (): Promise<void> {
-        await this.loadFile()
-        await this.invokeParsers()
-        await this.compile()
+        try {
+            await this.loadFile()
+            await this.invokeParsers()
+            await this.compile()
+        } catch (e) {
+            utils.logger.error('Compile', e.message, e)
+        }
     }
 
     async loadFile (): Promise<void> {

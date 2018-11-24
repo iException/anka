@@ -9,6 +9,7 @@ import {
     ParserInjection
 } from '../../../types/types'
 
+const cssnano = require('cssnano')
 const postcss = require('postcss')
 const postcssConfig: any = {}
 
@@ -17,10 +18,16 @@ const postcssConfig: any = {}
  * @for .wxss .css => .wxss
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, cb: Function): void {
+    const config = this.getSystemConfig()
+    const internalPlugins = [postcssWxImport]
+
+    if (!config.ankaConfig.devMode) {
+        internalPlugins.push(cssnano)
+    }
     genPostcssConfig().then((config: any) => {
         file.content = file.content instanceof Buffer ? file.content.toString() : file.content
 
-        return postcss(config.plugins.concat([postcssWxImport])).process(file.content, {
+        return postcss(config.plugins.concat(internalPlugins)).process(file.content, {
             ...config.options,
             from: file.sourceFile
         } as Postcss.ProcessOptions)
