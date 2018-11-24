@@ -54,4 +54,10 @@ export default class File {
     updateExt (ext: string): void {
         this.targetFile = replaceExt(this.targetFile, ext)
     }
+
+    convertContentToString () {
+        if (this.content instanceof Buffer) {
+            this.content = this.content.toString()
+        }
+    }
 }

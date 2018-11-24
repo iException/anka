@@ -9,7 +9,7 @@ import {
 const cwd = process.cwd()
 const customConfig = <AnkaConfig>resolveConfig(['anka.config.js', 'anka.config.json'])
 
-function mergeArray <T>(...arrs: Array<T[]>): Array<T> {
+function mergeArray <T> (...arrs: Array<T[]>): Array<T> {
     return arrs.filter(arr => arr && arr.length).reduce((prev, next) => {
         return prev.concat(next)
     }, [])

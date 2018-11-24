@@ -23,6 +23,7 @@ export default <Plugin> function (this: PluginInjection) {
 
     this.on('before-compile', function (compilation: Compilation, cb: Function) {
         const file = compilation.file
+        const devMode = config.ankaConfig.devMode
         const localDependencyPool = new Map<string, string>()
 
         // Only resolve js file.
@@ -71,8 +72,10 @@ export default <Plugin> function (this: PluginInjection) {
                     }
                 }
             })
-
-            file.content = codeGenerator(file.ast).code
+            file.content = codeGenerator(file.ast, {
+                compact: !devMode,
+                minified: !devMode
+            }).code
 
             const dependencyList = Array.from(localDependencyPool.keys()).filter(dependency => !dependencyPool.has(dependency))
 

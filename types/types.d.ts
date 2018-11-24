@@ -204,6 +204,8 @@ export class File {
     saveTo (path: string): Promise<void>
 
     updateExt (ext: string): void
+
+    convertContentToString (): void
 }
 
 export type FileConstructorOption = {
