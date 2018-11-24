@@ -18,7 +18,10 @@ export default class DevCommand extends Command {
     }
 
     async action (pages?: Array<string>, options?: DevCommandOpts) {
+        this.$compiler.config.ankaConfig.devMode = false
+
         const startupTime = Date.now()
+
         this.initCompiler()
         await this.$compiler.clean()
         await this.$compiler.launch()
