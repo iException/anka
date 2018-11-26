@@ -1,6 +1,5 @@
 import * as Postcss from 'postcss'
 import postcssrc from 'postcss-load-config'
-import postcssWxImport from './postcssWximport'
 
 import {
     File,
@@ -8,8 +7,8 @@ import {
     Compilation,
     ParserInjection
 } from '../../../types/types'
+import * as PostCSS from 'postcss'
 
-const cssnano = require('cssnano')
 const postcss = require('postcss')
 const postcssConfig: any = {}
 
@@ -18,21 +17,18 @@ const postcssConfig: any = {}
  * @for .wxss .css => .wxss
  */
 export default <Parser>function (this: ParserInjection, file: File, compilation: Compilation, cb: Function): void {
-    const config = this.getSystemConfig()
-    const internalPlugins = [postcssWxImport]
+    const internalPlugins: Array<PostCSS.AcceptedPlugin> = []
 
-    if (!config.ankaConfig.devMode) {
-        internalPlugins.push(cssnano)
-    }
     genPostcssConfig().then((config: any) => {
-        file.content = file.content instanceof Buffer ? file.content.toString() : file.content
+        file.convertContentToString()
 
         return postcss(config.plugins.concat(internalPlugins)).process(file.content, {
             ...config.options,
             from: file.sourceFile
         } as Postcss.ProcessOptions)
-    }).then((root: Postcss.LazyResult) => {
+    }).then((root: Postcss.Result) => {
         file.content = root.css
+        file.ast = root.root.toResult()
         file.updateExt('.wxss')
         cb()
     })

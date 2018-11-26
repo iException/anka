@@ -86,6 +86,8 @@ export default class Compilation {
         // Do something else.
         await this.compiler.emit('after-compile', this)
         !this.config.ankaConfig.quiet &&  utils.logger.info('Compile',  this.file.sourceFile.replace(`${config.cwd}/`, ''))
+
+        this.destroy()
     }
 
     /**

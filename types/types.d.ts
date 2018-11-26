@@ -1,5 +1,6 @@
 import * as t from '@babel/types'
 import utils from './utils'
+import * as PostCSS from 'postcss'
 
 type CompilerConfig = {
     cwd: string
@@ -192,7 +193,7 @@ export class File {
     public sourceFile: string
     public content: Content
     public targetFile: string
-    public ast?: t.Node
+    public ast?: t.Node | PostCSS.Result
     public sourceMap?: Content
     public dirname: string
     public basename: string
