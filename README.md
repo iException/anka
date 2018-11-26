@@ -29,14 +29,14 @@ $ npm install @anka-dev/cli -g
 
 # 你可能需要的
 
-- [Canvas操作](https://github.com/iException/anka-brush)
-- [小程序打点库](https://github.com/iException/anka-tracker)
+- [anka-brush](https://github.com/iException/anka-brush) —— 小程序 Canvas 操作
+- [anka-tracker](https://github.com/iException/anka-tracker) ——  小程序打点库
 - [更多工具](https://github.com/iException?utf8=%E2%9C%93&q=anka&type=&language=)
 
 
 # 问题
 
-#### 1. Anka 是小程序开发框架吗？
+#### Anka 是小程序开发框架吗？
 
 Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根据实际需求引入 Anka 集合内的工具，比如 [Canvas库 anka-brush](https://github.com/iException/anka-brush)、[打点工具 anka-tracker](https://github.com/iException/anka-tracker)。
 
@@ -44,7 +44,7 @@ Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根
 
 关于 AnkaCLI 如何工作请看[这里](https://iexception.github.io/anka-doc/book/cli/how-cli-works.html)。
 
-#### 2. 可以不安装 CLI 而单独使用其他工具吗？
+#### 可以不安装 CLI 而单独使用其他工具吗？
 
 完全可以。Anka 集合下的工具都能单独使用，他们之间没有任何依赖（如果有则会特别指出）。
 
@@ -54,4 +54,4 @@ Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根
 
 我们非常乐意看见你将使用过程中遇见的缺陷[反馈到 issue 区](https://github.com/iException/anka/issues)。也任何新的想法或需求也可以通过相同方式提出并列入讨论。
 
-> Have a nice day ！
+> Have a nice day 🎉 ！
