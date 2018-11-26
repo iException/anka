@@ -19,8 +19,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
     sass.render({
         file: file.sourceFile,
-        data: file.content,
-        outputStyle: !config.ankaConfig.devMode ? 'nested' : 'compressed'
+        data: file.content
     }, (err: Error, result: any) => {
         if (err) {
             utils.logger.error('Compile', err.message, err)

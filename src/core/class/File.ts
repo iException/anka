@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 import config from '../../config'
 import * as t from '@babel/types'
-
+import * as PostCSS from 'postcss'
 import {
     Content,
     FileConstructorOption
@@ -14,7 +14,7 @@ export default class File {
     public sourceFile: string
     public content: Content
     public targetFile: string
-    public ast?: t.Node
+    public ast?: t.Node | PostCSS.Result
     public sourceMap?: Content
     public isInSrcDir?: boolean
 

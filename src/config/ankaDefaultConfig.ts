@@ -7,6 +7,7 @@ import babelParser from '../parsers/babelParser'
 import scriptParser from '../parsers/scriptParser'
 import templateParser from '../parsers/templateParser'
 import saveFilePlugin from '../plugins/saveFilePlugin'
+import wxImportPlugin from '../plugins/wxImportPlugin'
 import typescriptParser from '../parsers/typescriptParser'
 import extractDependencyPlugin from '../plugins/extractDependencyPlugin'
 
@@ -128,6 +129,10 @@ export const debug: boolean = false
 export const plugins: PluginsConfigration = [
     {
         plugin: extractDependencyPlugin,
+        options: {}
+    },
+    {
+        plugin: wxImportPlugin,
         options: {}
     },
     {

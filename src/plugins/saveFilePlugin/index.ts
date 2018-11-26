@@ -40,11 +40,9 @@ export default <Plugin>function (this: PluginInjection) {
             }
             return writeFile(file.targetFile, file.content)
         }).then(() => {
-            compilation.destroy()
             cb()
-        }, err => {
+        }).catch((err: Error) => {
             logger.error('Error', err.message, err)
-            compilation.destroy()
             cb()
         })
     })
