@@ -16,7 +16,7 @@ export default <Plugin>function (this: PluginInjection) {
         writeFile
     } = utils
 
-    this.on('after-compile', <PluginHandler>function (compilation: Compilation, cb: Function) {
+    this.on('save', <PluginHandler>function (compilation: Compilation, cb: Function) {
         const file = compilation.file
 
         // TODO: Use mem-fs

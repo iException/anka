@@ -83,7 +83,11 @@ export default class Compiler {
             return asyncFunctionWrapper(plugin)
         })
 
-        await callPromiseInChain(tasks, compilation)
+        try {
+            await callPromiseInChain(tasks, compilation)
+        } catch (e) {
+            utils.logger.error('Compile', e.message, e)
+        }
     }
 
     /**
