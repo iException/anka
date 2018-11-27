@@ -37,7 +37,8 @@ export default class Compiler {
         'before-parse': [],
         'after-parse': [],
         'before-compile': [],
-        'after-compile': []
+        'after-compile': [],
+        'save': []
     }
     parsers: Array<{
         match: RegExp,
@@ -83,7 +84,11 @@ export default class Compiler {
             return asyncFunctionWrapper(plugin)
         })
 
-        await callPromiseInChain(tasks, compilation)
+        try {
+            await callPromiseInChain(tasks, compilation)
+        } catch (e) {
+            utils.logger.error('Compile', e.message, e)
+        }
     }
 
     /**
