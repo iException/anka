@@ -37,7 +37,8 @@ export default class Compiler {
         'before-parse': [],
         'after-parse': [],
         'before-compile': [],
-        'after-compile': []
+        'after-compile': [],
+        'save': []
     }
     parsers: Array<{
         match: RegExp,
