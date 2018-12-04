@@ -1,1 +1,4 @@
-<view>component: <%= componentName %></view>
+<!-- Component: <%=componentName%> -->
+<!-- Created at: <%=time%> -->
+
+<view></view>

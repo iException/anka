@@ -60,7 +60,8 @@ export default class CreateComponentCommand extends Command {
             component
         const componentName = path.basename(componentPath)
         const context = {
-            componentName
+            componentName,
+            time: new Date().toLocaleString()
         }
         const absolutePath = root ?
             path.join(config.srcDir, ankaConfig.subPackages, root, componentPath) :
