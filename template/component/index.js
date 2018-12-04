@@ -1,6 +1,9 @@
-Component({
-    name: '${name}',
+/**
+ * Component: <%=componentName%>
+ * Created at: <%=time%>
+ */
 
+Component({
     properties: {},
 
     data: {},

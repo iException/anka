@@ -57,7 +57,8 @@ export default class CreatePageCommand extends Command {
             path.join(ankaConfig.pages, page, page) : page
         const pageName = path.basename(pagePath)
         const context = {
-            pageName
+            pageName,
+            time: new Date().toLocaleString()
         }
         const appConfigPath = path.join(config.srcDir, 'app.json')
         let absolutePath = config.srcDir

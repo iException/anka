@@ -1,1 +1,4 @@
-<view>page: <%= pageName %></view>
+<!-- Page: <%=pageName%> -->
+<!-- Created at: <%=time%> -->
+
+<view></view>
