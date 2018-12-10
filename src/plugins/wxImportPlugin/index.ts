@@ -9,7 +9,7 @@ import * as PostCSS from 'postcss'
 import postcssWxImport from './postcssWximport'
 
 const postcss = require('postcss')
-const cssnano = require('cssnano')
+const cssnano = require('postcss-normalize-whitespace')
 const internalPlugins: Array<PostCSS.AcceptedPlugin> = [postcssWxImport]
 
 export default <Plugin>function (this: PluginInjection) {
