@@ -30,6 +30,8 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
             filename: file.sourceFile,
             sourceType: 'module',
             sourceMaps: config.ankaConfig.devMode,
+            comments: config.ankaConfig.devMode,
+            minified: !config.ankaConfig.devMode,
             ...babelConfig
         })
 
