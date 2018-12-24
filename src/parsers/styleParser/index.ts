@@ -8,11 +8,10 @@ import {
     Compilation,
     ParserInjection
 } from '../../../types/types'
-import * as PostCSS from 'postcss'
 
 const postcss = require('postcss')
 const postcssConfig: any = {}
-const internalPlugins: Array<PostCSS.AcceptedPlugin> = []
+const internalPlugins: Array<Postcss.AcceptedPlugin> = []
 const tasks: any[] = []
 
 // TODO: Add new hook: preset
@@ -48,6 +47,8 @@ function exec (config: any, file: File, cb: Function) {
         file.ast = root.root.toResult()
         file.updateExt('.wxss')
         cb()
+    }).catch((err: Error) => {
+        logger.error('Compile', err.message, err)
     })
 }
 
