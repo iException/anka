@@ -6,6 +6,9 @@
 	<a href="https://www.npmjs.com/package/@anka-dev/cli">
 		<img src="https://badge.fury.io/js/%40anka-dev%2Fcli.svg"/>
 	</a>
+	<a href="https://travis-ci.com/iException/anka">
+		<img src="https://travis-ci.com/iException/anka.svg?branch=dev"/>
+    </a>
 </p>
 
 > 渐进式小程序开发工具集。提供通用的开发函数库及组件，我们正努力使小程序开发过程变得愉快。
