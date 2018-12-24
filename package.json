@@ -6,6 +6,7 @@
     "anka": "dist/index.js"
   },
   "scripts": {
+    "test": "echo 'no test case'",
     "dev": "rollup -c build/rollup.config.dev.js -w",
     "build": "rollup -c build/rollup.config.prod.js"
   },
