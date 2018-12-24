@@ -25,6 +25,6 @@ export default class DevCommand extends Command {
         this.initCompiler()
         await this.$compiler.clean()
         await this.$compiler.launch()
-        logger.success(`Done: ${Date.now() - startupTime}ms`, 'Have a nice day 🎉 !')
+        logger.success(`Compiled in ${Date.now() - startupTime}ms`, 'Have a nice day 🎉 !')
     }
 }
