@@ -22,9 +22,9 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
             babelConfig = <babel.TransformOptions>utils.resolveConfig(['babel.config.js'], config.cwd)
         }
 
-        file.content = file.content instanceof Buffer ? file.content.toString() : file.content
+        file.convertContentToString()
 
-        const result = babel.transformSync(file.content, {
+        const result = babel.transformSync(<string>file.content, {
             babelrc: false,
             ast: true,
             filename: file.sourceFile,

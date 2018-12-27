@@ -1,4 +1,5 @@
 import File from './File'
+import * as path from 'path'
 import config from '../../config'
 import Compiler from './Compiler'
 import * as utils from '../../utils'
@@ -86,7 +87,7 @@ export default class Compilation {
         // Do something else.
         await this.compiler.emit('after-compile', this)
         await this.compiler.emit('save', this)
-        !this.config.ankaConfig.quiet &&  utils.logger.info('Compile',  this.file.sourceFile.replace(`${config.cwd}/`, ''))
+        !this.config.ankaConfig.quiet &&  utils.logger.info('Compile',  this.file.sourceFile.replace(`${config.cwd}${path.sep}`, ''))
         this.destroy()
     }
 

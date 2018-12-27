@@ -5,7 +5,9 @@ import {
     PluginHandler,
     PluginInjection
 } from '../../../types/types'
+const UglifyJS = require('uglify-js')
 const minifyJSON = require('jsonminify')
+
 const inlineSourceMapComment = require('inline-source-map-comment')
 
 export default <Plugin>function (this: PluginInjection) {
@@ -37,6 +39,9 @@ export default <Plugin>function (this: PluginInjection) {
                         file.content = minifyJSON(file.content)
                         break
                 }
+            }
+            if (config.ankaConfig.debug) {
+                logger.info('Saving', file.targetFile)
             }
             return writeFile(file.targetFile, file.content)
         }).then(() => {
