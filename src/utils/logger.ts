@@ -31,7 +31,7 @@ export class Logger {
 
     error (title: string = '', msg: string = '', err?: any) {
         this.log(chalk.redBright(title), chalk.grey(msg))
-        err && console.log(chalk.redBright(err || err.stack))
+        err && console.error(err)
     }
 
     info (title: string = '', msg: string = '') {
