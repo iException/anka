@@ -9,6 +9,9 @@
 	<a href="https://travis-ci.com/iException/anka">
 		<img src="https://travis-ci.com/iException/anka.svg?branch=dev"/>
     </a>
+	<a href="https://gitter.im/anka-dev/community">
+		<img src="https://img.shields.io/gitter/room/iexception/anka.svg?style=flat"/>
+    </a>
 </p>
 
 > 渐进式小程序开发工具集。提供通用的开发函数库及组件，我们正努力使小程序开发过程变得愉快。
