@@ -8,6 +8,7 @@ import * as fs from 'fs-extra'
 import config from '../../config'
 import * as utils from '../../utils'
 import Compilation from './Compilation'
+import messager from '../../utils/messager'
 import callPromiseInChain from '../../utils/callPromiseInChain'
 import asyncFunctionWrapper from '../../utils/asyncFunctionWrapper'
 
@@ -108,6 +109,8 @@ export default class Compiler {
      * Everything start from here.
      */
     async launch (): Promise<any> {
+        const startupTime = Date.now()
+
         logger.info('Launching...')
 
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
@@ -133,6 +136,14 @@ export default class Compiler {
         // Compiler.compilationPool.values()
 
         await Promise.all(compilations.map(compilations => compilations.run()))
+
+
+        if (messager.hasError()) {
+            messager.printError()
+        } else {
+            logger.success('Compiled' ,  `${files.length} files in ${Date.now() - startupTime}ms`)
+            config.ankaConfig.debug && messager.printInfo()
+        }
     }
 
     watchFiles (): Promise<any> {
@@ -143,16 +154,34 @@ export default class Compiler {
             })
 
             watcher.on('add', async (fileName: string) => {
+                const startupTime = Date.now()
                 const file = await utils.createFile(fileName)
+
                 await this.generateCompilation(file).run()
+
+                if (messager.hasError()) {
+                    messager.printError()
+                } else {
+                    logger.success(`Compiled in ${Date.now() - startupTime}ms`)
+                    messager.printInfo()
+                }
             })
             watcher.on('unlink', async (fileName: string) => {
                 await fs.unlink(fileName.replace(config.srcDir, config.distDir))
                 logger.success('Remove', fileName)
             })
             watcher.on('change', async (fileName: string) => {
+                const startupTime = Date.now()
                 const file = await utils.createFile(fileName)
+
                 await this.generateCompilation(file).run()
+
+                if (messager.hasError()) {
+                    messager.printError()
+                } else {
+                    logger.success(`Compiled in ${Date.now() - startupTime}ms`)
+                    messager.printInfo()
+                }
             })
             watcher.on('ready', () => {
                 resolve()

@@ -1,4 +1,6 @@
 import chalk from 'chalk'
+import messager from './messager'
+
 const ora = require('ora')
 
 export function toFix (number: number): string {
@@ -30,12 +32,15 @@ export class Logger {
     }
 
     error (title: string = '', msg: string = '', err?: any) {
-        this.log(chalk.redBright(title), chalk.grey(msg))
-        err && console.error(err)
+        if (err === void (0)) {
+            err = new Error('')
+        }
+        err.message = chalk.redBright(title) + chalk.grey(msg)
+        messager.push(err)
     }
 
     info (title: string = '', msg: string = '') {
-        this.log(chalk.reset(title), chalk.grey(msg))
+        messager.push(chalk.reset(title) + chalk.grey(msg))
     }
 
     warn (title: string = '', msg: string = '') {
@@ -43,7 +48,7 @@ export class Logger {
     }
 
     success (title: string = '', msg: string = '') {
-        this.log(chalk.greenBright(title), chalk.grey(msg))
+        this.log(chalk.hex('#333333').bgGreenBright(title), chalk.grey(msg))
     }
 }
 

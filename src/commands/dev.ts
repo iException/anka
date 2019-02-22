@@ -1,5 +1,7 @@
+import config  from '../config'
 import { logger } from '../utils'
 import { Command, Compiler } from '../core'
+import messager from '../utils/messager'
 
 export type DevCommandOpts = Object & {}
 
@@ -22,12 +24,9 @@ export default class DevCommand extends Command {
     async action (pages?: Array<string>, options?: DevCommandOpts) {
         this.$compiler.config.ankaConfig.devMode = true
 
-        const startupTime = Date.now()
-
         this.initCompiler()
         await this.$compiler.clean()
         await this.$compiler.launch()
         await this.$compiler.watchFiles()
-        logger.success(`Compiled in ${Date.now() - startupTime}ms 🎉 , Anka is waiting for changes...`)
     }
 }
