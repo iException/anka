@@ -28,26 +28,28 @@ export class Logger {
     }
 
     log (...msg: Array<string>) {
-        return console.log(this.time, ...msg)
+        return console.log([this.time, ...msg].join(' '))
     }
 
     error (title: string = '', msg: string = '', err?: any) {
         if (err === void (0)) {
             err = new Error('')
         }
-        err.message = chalk.redBright(title) + chalk.grey(msg)
+        err.message = chalk.hex('#333333').bgRedBright(title) + ' ' + chalk.grey(msg)
         messager.push(err)
     }
 
     info (title: string = '', msg: string = '') {
-        messager.push(chalk.reset(title) + chalk.grey(msg))
+        messager.push(this.time + ' ' + chalk.reset(title) + ' ' + chalk.grey(msg))
     }
 
     warn (title: string = '', msg: string = '') {
-        this.log(chalk.yellowBright(title), chalk.grey(msg))
+        console.clear()
+        this.log(chalk.hex('#333333').bgYellowBright(title), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
+        console.clear()
         this.log(chalk.hex('#333333').bgGreenBright(title), chalk.grey(msg))
     }
 }

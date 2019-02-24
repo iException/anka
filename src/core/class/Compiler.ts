@@ -141,7 +141,7 @@ export default class Compiler {
         if (messager.hasError()) {
             messager.printError()
         } else {
-            logger.success('Compiled' ,  `${files.length} files in ${Date.now() - startupTime}ms`)
+            logger.success('Compiled' , `${files.length} files in ${Date.now() - startupTime}ms`)
             config.ankaConfig.debug && messager.printInfo()
         }
     }
@@ -162,7 +162,7 @@ export default class Compiler {
                 if (messager.hasError()) {
                     messager.printError()
                 } else {
-                    logger.success(`Compiled in ${Date.now() - startupTime}ms`)
+                    logger.success('Compiled ', `in ${Date.now() - startupTime}ms`)
                     messager.printInfo()
                 }
             })
@@ -179,12 +179,13 @@ export default class Compiler {
                 if (messager.hasError()) {
                     messager.printError()
                 } else {
-                    logger.success(`Compiled in ${Date.now() - startupTime}ms`)
+                    logger.success('Compiled ', `in ${Date.now() - startupTime}ms`)
                     messager.printInfo()
                 }
             })
             watcher.on('ready', () => {
                 resolve()
+                logger.log('waiting for changes...')
             })
         })
     }

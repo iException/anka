@@ -40,9 +40,6 @@ export default <Plugin>function (this: PluginInjection) {
                         break
                 }
             }
-            if (config.ankaConfig.debug) {
-                logger.info('Saving', file.targetFile)
-            }
             return writeFile(file.targetFile, file.content)
         }).then(() => {
             cb()

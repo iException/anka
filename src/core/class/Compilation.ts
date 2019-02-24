@@ -89,7 +89,7 @@ export default class Compilation {
         // Do something else.
         await this.compiler.emit('after-compile', this)
         await this.compiler.emit('save', this)
-        utils.logger.info('Compile',  this.file.sourceFile.replace(`${config.cwd}${path.sep}`, ''))
+        config.ankaConfig.debug && utils.logger.info('Compile', this.file.sourceFile.replace(`${config.cwd}${path.sep}`, ''))
         this.destroy()
     }
 
