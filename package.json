@@ -58,7 +58,6 @@
     "source-map-support": "^0.5.9",
     "tslib": "^1.9.3",
     "typescript": "^3.1.6",
-    "uglify-js": "^3.4.9",
     "validate-npm-package-name": "^3.0.0"
   },
   "devDependencies": {

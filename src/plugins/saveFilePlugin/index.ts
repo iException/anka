@@ -5,7 +5,6 @@ import {
     PluginHandler,
     PluginInjection
 } from '../../../types/types'
-const UglifyJS = require('uglify-js')
 const minifyJSON = require('jsonminify')
 
 const inlineSourceMapComment = require('inline-source-map-comment')
