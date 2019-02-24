@@ -1,4 +1,6 @@
 import chalk from 'chalk'
+import messager from './messager'
+
 const ora = require('ora')
 
 export function toFix (number: number): string {
@@ -26,24 +28,29 @@ export class Logger {
     }
 
     log (...msg: Array<string>) {
-        return console.log(this.time, ...msg)
+        return console.log([this.time, ...msg].join(' '))
     }
 
-    error (title: string = '', msg: string = '', err?: any) {
-        this.log(chalk.redBright(title), chalk.grey(msg))
-        err && console.log(chalk.redBright(err || err.stack))
+    error (title: string = '', msg: string = '', err?: Error) {
+        if (err === void (0)) {
+            err = new Error('')
+        }
+        err.message = chalk.hex('#333333').bgRedBright(title) + ' ' + chalk.grey(msg) + '\r\n' + err.message
+        messager.push(err)
     }
 
     info (title: string = '', msg: string = '') {
-        this.log(chalk.reset(title), chalk.grey(msg))
+        messager.push(this.time + ' ' + chalk.reset(title) + ' ' + chalk.grey(msg))
     }
 
     warn (title: string = '', msg: string = '') {
-        this.log(chalk.yellowBright(title), chalk.grey(msg))
+        console.clear()
+        this.log(chalk.hex('#333333').bgYellowBright(title), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
-        this.log(chalk.greenBright(title), chalk.grey(msg))
+        console.clear()
+        this.log(chalk.hex('#333333').bgGreenBright(title), chalk.grey(msg))
     }
 }
 

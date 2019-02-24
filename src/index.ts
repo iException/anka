@@ -57,7 +57,6 @@ commands.forEach(command => {
             try {
                 await command.action(...args)
             } catch (err) {
-                logger.error(err.message || '')
                 console.log(err)
             }
         })

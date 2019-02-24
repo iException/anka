@@ -5,6 +5,6 @@ export default function (id: string, options?: { paths?: string[] }): string {
     try {
         return require.resolve(id, options)
     } catch (err) {
-        log.error('Missing dependency', id, !ankaConfig.quiet ? `in ${options.paths}` : null)
+        log.error('Compile', id, new Error(`Missing dependency ${id} in ${options.paths}`))
     }
 }

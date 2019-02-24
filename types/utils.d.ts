@@ -17,7 +17,7 @@ export type logger = {
 
     log(...msg: Array<string>): void
 
-    error(title: string, msg: string, err?: any): void
+    error(title: string, msg: string, err?: Error): void
 
     info(title: string, msg: string): void
 

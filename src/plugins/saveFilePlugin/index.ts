@@ -6,6 +6,7 @@ import {
     PluginInjection
 } from '../../../types/types'
 const minifyJSON = require('jsonminify')
+
 const inlineSourceMapComment = require('inline-source-map-comment')
 
 export default <Plugin>function (this: PluginInjection) {

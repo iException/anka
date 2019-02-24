@@ -49,6 +49,7 @@ function exec (config: any, file: File, cb: Function) {
         cb()
     }).catch((err: Error) => {
         logger.error('Compile', err.message, err)
+        cb()
     })
 }
 

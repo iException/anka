@@ -22,8 +22,11 @@ export function readFile (sourceFilePath: string): Promise<Buffer> {
 export function writeFile (targetFilePath: string, content: Content): Promise<undefined> {
     return new Promise((resolve, reject) => {
         fs.writeFile(targetFilePath, content, err => {
-            if (err) throw err
-            resolve()
+            if (err) {
+                reject(err)
+            } else {
+                resolve()
+            }
         })
     })
 }

@@ -39,7 +39,7 @@ export default <Plugin> function (this: PluginInjection) {
                 )
             }
 
-            traverse(file.ast, {
+            traverse(<t.Node>file.ast, {
                 enter (path) {
                     if (path.isImportDeclaration()) {
                         const node = path.node
@@ -119,5 +119,4 @@ export default <Plugin> function (this: PluginInjection) {
         file.targetFile = file.sourceFile.replace(config.sourceNodeModules, config.distNodeModules)
         await compiler.generateCompilation(file).run()
     }
-
 }
