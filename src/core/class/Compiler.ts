@@ -110,9 +110,6 @@ export default class Compiler {
      */
     async launch (): Promise<any> {
         const startupTime = Date.now()
-
-        logger.info('Launching...')
-
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
             cwd: config.srcDir,
             nodir: true,
@@ -136,7 +133,6 @@ export default class Compiler {
         // Compiler.compilationPool.values()
 
         await Promise.all(compilations.map(compilations => compilations.run()))
-
 
         if (messager.hasError()) {
             messager.printError()
@@ -162,7 +158,7 @@ export default class Compiler {
                 if (messager.hasError()) {
                     messager.printError()
                 } else {
-                    logger.success('Compiled ', `in ${Date.now() - startupTime}ms`)
+                    logger.success('Compiled ', `${fileName} in ${Date.now() - startupTime}ms`)
                     messager.printInfo()
                 }
             })
@@ -171,6 +167,7 @@ export default class Compiler {
                 logger.success('Remove', fileName)
             })
             watcher.on('change', async (fileName: string) => {
+                logger.log('Compiling', fileName)
                 const startupTime = Date.now()
                 const file = await utils.createFile(fileName)
 
@@ -179,13 +176,13 @@ export default class Compiler {
                 if (messager.hasError()) {
                     messager.printError()
                 } else {
-                    logger.success('Compiled ', `in ${Date.now() - startupTime}ms`)
+                    logger.success('Compiled ', `${fileName} in ${Date.now() - startupTime}ms`)
                     messager.printInfo()
                 }
             })
             watcher.on('ready', () => {
                 resolve()
-                logger.log('waiting for changes...')
+                logger.log('Anka is waiting for changes...')
             })
         })
     }

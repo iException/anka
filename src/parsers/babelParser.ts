@@ -24,20 +24,23 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
         file.convertContentToString()
 
-        const result = babel.transformSync(<string>file.content, {
-            babelrc: false,
-            ast: true,
-            filename: file.sourceFile,
-            sourceType: 'module',
-            sourceMaps: config.ankaConfig.devMode,
-            comments: config.ankaConfig.devMode,
-            minified: !config.ankaConfig.devMode,
-            ...babelConfig
-        })
-
-        file.sourceMap = JSON.stringify(result.map)
-        file.content = result.code
-        file.ast = result.ast
+        try {
+            const result = babel.transformSync(<string>file.content, {
+                babelrc: false,
+                ast: true,
+                filename: file.sourceFile,
+                sourceType: 'module',
+                sourceMaps: config.ankaConfig.devMode,
+                comments: config.ankaConfig.devMode,
+                minified: !config.ankaConfig.devMode,
+                ...babelConfig
+            })
+            file.sourceMap = JSON.stringify(result.map)
+            file.content = result.code
+            file.ast = result.ast
+        } catch (err) {
+            utils.logger.error('Compile', file.sourceFile, err)
+        }
     }
 
     file.updateExt('.js')
