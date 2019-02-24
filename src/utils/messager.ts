@@ -1,5 +1,5 @@
 import logger from './logger'
-import ankaConfig from "../config/ankaConfig";
+import ankaConfig from '../config/ankaConfig'
 
 export default {
     errors: [],
@@ -21,7 +21,7 @@ export default {
     printError (): void {
         console.clear()
         this.errors.forEach((err: Error) => {
-            console.error(err.message)
+            console.error(err.message, '\r\n\r\n')
             ankaConfig.debug && console.log(err.stack)
         })
         this.errors = []

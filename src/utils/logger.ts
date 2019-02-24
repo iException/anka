@@ -31,7 +31,7 @@ export class Logger {
         return console.log([this.time, ...msg].join(' '))
     }
 
-    error (title: string = '', msg: string = '', err?: any) {
+    error (title: string = '', msg: string = '', err?: Error) {
         if (err === void (0)) {
             err = new Error('')
         }

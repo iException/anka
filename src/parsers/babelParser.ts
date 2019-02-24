@@ -35,6 +35,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
                 minified: !config.ankaConfig.devMode,
                 ...babelConfig
             })
+
             file.sourceMap = JSON.stringify(result.map)
             file.content = result.code
             file.ast = result.ast

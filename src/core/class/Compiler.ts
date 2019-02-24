@@ -109,6 +109,8 @@ export default class Compiler {
      * Everything start from here.
      */
     async launch (): Promise<any> {
+        logger.log('Launching...')
+
         const startupTime = Date.now()
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
             cwd: config.srcDir,
