@@ -109,7 +109,7 @@ export default class Compiler {
      * Everything start from here.
      */
     async launch (): Promise<any> {
-        logger.log('Launching...')
+        logger.startLoading('Launching...')
 
         const startupTime = Date.now()
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
@@ -152,6 +152,7 @@ export default class Compiler {
             })
 
             watcher.on('add', async (fileName: string) => {
+                logger.startLoading(`Compiling ${fileName}`)
                 const startupTime = Date.now()
                 const file = await utils.createFile(fileName)
 
@@ -169,7 +170,7 @@ export default class Compiler {
                 logger.success('Remove', fileName)
             })
             watcher.on('change', async (fileName: string) => {
-                logger.log('Compiling', fileName)
+                logger.startLoading(`Compiling ${fileName}`)
                 const startupTime = Date.now()
                 const file = await utils.createFile(fileName)
 
@@ -178,7 +179,7 @@ export default class Compiler {
                 if (messager.hasError()) {
                     messager.printError()
                 } else {
-                    logger.success('Compiled ', `${fileName} in ${Date.now() - startupTime}ms`)
+                    logger.success('Compiled', `${fileName} in ${Date.now() - startupTime}ms`)
                     messager.printInfo()
                 }
             })

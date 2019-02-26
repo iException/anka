@@ -46,6 +46,7 @@ export default class Compilation {
             await this.invokeParsers()
             await this.compile()
         } catch (e) {
+            this.destroy()
             utils.logger.error('Compile', e.message, e)
         }
     }

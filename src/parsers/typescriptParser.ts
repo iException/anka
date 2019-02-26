@@ -43,7 +43,8 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
         }
         file.updateExt('.js')
     } catch (err) {
-        logger.error('Compile error', err.message, err)
+        logger.error('Compile', err.message, err)
+        compilation.destroy()
     }
 
     callback()

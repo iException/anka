@@ -28,6 +28,7 @@ export class Logger {
     }
 
     log (...msg: Array<string>) {
+        this.stopLoading()
         return console.log([this.time, ...msg].join(' '))
     }
 
@@ -35,7 +36,7 @@ export class Logger {
         if (err === void (0)) {
             err = new Error('')
         }
-        err.message = chalk.hex('#333333').bgRedBright(title) + ' ' + chalk.grey(msg) + '\r\n' + err.message
+        err.message = chalk.hex('#333333').bgRedBright(` ${title.trim()} `) + ' ' + chalk.grey(msg) + '\r\n' + err.message
         messager.push(err)
     }
 
@@ -45,12 +46,12 @@ export class Logger {
 
     warn (title: string = '', msg: string = '') {
         console.clear()
-        this.log(chalk.hex('#333333').bgYellowBright(title), chalk.grey(msg))
+        this.log(chalk.hex('#333333').bgYellowBright(` ${title.trim()} `), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
         console.clear()
-        this.log(chalk.hex('#333333').bgGreenBright(title), chalk.grey(msg))
+        this.log(chalk.hex('#333333').bgGreenBright(` ${title.trim()} `), chalk.grey(msg))
     }
 }
 
