@@ -40,6 +40,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
             file.content = result.code
             file.ast = result.ast
         } catch (err) {
+            compilation.destroy()
             utils.logger.error('Compile', file.sourceFile, err)
         }
     }

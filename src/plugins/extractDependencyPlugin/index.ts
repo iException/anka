@@ -82,8 +82,9 @@ export default <Plugin> function (this: PluginInjection) {
             Promise.all(dependencyList.map(dependency => traverseNpmDependency(dependency))).then(() => {
                 cb()
             }).catch(err => {
-                cb()
                 utils.logger.error(file.sourceFile, err.message, err)
+                compilation.destroy()
+                cb()
             })
         } else {
             cb()

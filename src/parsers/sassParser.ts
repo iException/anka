@@ -23,6 +23,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
     }, (err: Error, result: any) => {
         if (err) {
             utils.logger.error('Compile', err.message, err)
+            compilation.destroy()
         } else {
             file.content = result.css
             file.updateExt('.wxss')

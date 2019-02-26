@@ -38,6 +38,7 @@ export default <Plugin>function (this: PluginInjection) {
                 cb()
             }, (err: Error) => {
                 logger.error('Error', err.message, err)
+                compilation.destroy()
                 cb()
             })
         } else {
