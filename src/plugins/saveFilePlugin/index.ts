@@ -44,6 +44,7 @@ export default <Plugin>function (this: PluginInjection) {
             cb()
         }).catch((err: Error) => {
             logger.error('Error', err.message, err)
+            compilation.destroy()
             cb()
         })
     })
