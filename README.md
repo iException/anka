@@ -8,10 +8,10 @@
 	</a>
 	<a href="https://travis-ci.com/iException/anka">
 		<img src="https://travis-ci.com/iException/anka.svg?branch=dev"/>
-    </a>
+	</a>
 	<a href="https://gitter.im/anka-dev/community">
 		<img src="https://img.shields.io/gitter/room/iexception/anka.svg?style=flat"/>
-    </a>
+	</a>
 </p>
 
 > 渐进式小程序开发工具集。提供通用的开发函数库及组件，我们正努力使小程序开发过程变得愉快。
@@ -61,3 +61,7 @@ Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根
 我们非常乐意看见你将使用过程中遇见的缺陷[反馈到 issue 区](https://github.com/iException/anka/issues)。也任何新的想法或需求也可以通过相同方式提出并列入讨论。
 
 > Have a nice day 🎉 ！
+
+# LICENSE
+
+[MIT](./LICENSE)
