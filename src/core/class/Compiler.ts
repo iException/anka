@@ -166,8 +166,13 @@ export default class Compiler {
                 }
             })
             watcher.on('unlink', async (fileName: string) => {
-                await fs.unlink(fileName.replace(config.srcDir, config.distDir))
-                logger.success('Remove', fileName)
+                try {
+                    await fs.unlink(fileName.replace(config.srcDir, config.distDir))
+
+                    logger.success('Remove', fileName)
+                } catch (err) {
+                    logger.error('Remove', fileName, err)
+                }
             })
             watcher.on('change', async (fileName: string) => {
                 logger.startLoading(`Compiling ${fileName}`)
