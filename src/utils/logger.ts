@@ -28,7 +28,6 @@ export class Logger {
     }
 
     log (...msg: Array<string>) {
-        this.stopLoading()
         return console.log([this.time, ...msg].join(' '))
     }
 
@@ -45,11 +44,13 @@ export class Logger {
     }
 
     warn (title: string = '', msg: string = '') {
+        this.stopLoading()
         console.clear()
         this.log(chalk.hex('#333333').bgYellowBright(` ${title.trim()} `), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
+        this.stopLoading()
         console.clear()
         this.log(chalk.hex('#333333').bgGreenBright(` ${title.trim()} `), chalk.grey(msg))
     }
