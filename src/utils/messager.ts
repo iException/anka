@@ -21,7 +21,7 @@ export default {
     printError (): void {
         logger.stopLoading()
         console.clear()
-        logger.error('Error', `${this.errors.length} errors occurred`)
+        logger.error(`>>> ${this.errors.length} errors occurred`)
         console.log(this.errors.pop().message)
         this.errors.forEach((err: Error) => {
             console.error(err.message, '\r\n\r\n')

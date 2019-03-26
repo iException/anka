@@ -2,10 +2,7 @@ import * as path from 'path'
 import config from '../config'
 import { downloadRepo, logger } from '../utils'
 import { Command, Compiler } from '../core'
-
-export type InitCommandOpts = {
-    repo: string
-}
+import { CommandOpts } from '../../types'
 
 export default class InitCommand extends Command {
     constructor () {
@@ -27,7 +24,7 @@ export default class InitCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (projectName: string, options?: InitCommandOpts) {
+    async action (projectName: string, options?: CommandOpts.InitCommandOpts) {
         const project = path.resolve(config.cwd, projectName)
         const repo = options.repo || config.defaultScaffold
 

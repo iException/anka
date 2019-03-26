@@ -35,7 +35,7 @@ export class Logger {
         if (err === void (0)) {
             err = new Error('')
         }
-        err.message = chalk.hex('#333333').bgRedBright(` ${title.trim()} `) + ' ' + chalk.grey(msg) + '\r\n' + err.message
+        err.message = chalk.hex('#333333').bgRedBright(` ${title.trim()} `) + ' ' + chalk.grey(msg) + '\r\n'.repeat(2) + err.message
         messager.push(err)
     }
 

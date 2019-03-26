@@ -1,7 +1,6 @@
 import { logger } from '../utils'
 import { Command, Compiler } from '../core'
-
-export type DevCommandOpts = Object & {}
+import { CommandOpts } from '../../types'
 
 export default class DevCommand extends Command {
     constructor () {
@@ -17,7 +16,7 @@ export default class DevCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (pages?: Array<string>, options?: DevCommandOpts) {
+    async action (pages?: Array<string>, options?: CommandOpts.ProdCommandOpts) {
         this.$compiler.config.ankaConfig.devMode = false
 
         const startupTime = Date.now()

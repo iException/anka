@@ -6,14 +6,11 @@ import { Command, Compiler } from '../core'
 import { default as FsEditorConstructor } from '../utils/editor'
 
 import {
+    CommandOpts,
     CompilerConfig
 } from '../../types/types'
 
 const { logger, FsEditor } = utils
-
-export type CreateComponentCommandOpts = {
-    root: string
-}
 
 export default class CreateComponentCommand extends Command {
     constructor () {
@@ -36,7 +33,7 @@ export default class CreateComponentCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (components?: Array<string>, options?: CreateComponentCommandOpts) {
+    async action (components?: Array<string>, options?: CommandOpts.CreateComponentCommandOpts) {
         const {
             root
         } = options

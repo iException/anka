@@ -3,12 +3,15 @@
   "version": "1.1.2",
   "description": "WeChat miniprogram helper",
   "bin": {
-    "anka": "dist/index.js"
+    "anka": "dist/bin.js"
   },
+  "main": "dist/index.js",
+  "types": "types/index.d.ts",
   "scripts": {
     "test": "echo 'no test case'",
-    "dev": "rollup -c build/rollup.config.dev.js -w",
-    "build": "rollup -c build/rollup.config.prod.js"
+    "dev": "tsc -w",
+    "build": "tsc",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -64,6 +67,7 @@
     "@types/acorn": "^4.0.3",
     "@types/babel__core": "^7.0.1",
     "@types/babel__generator": "^7.0.0",
+    "@types/babel__template": "^7.0.2",
     "@types/babel__traverse": "^7.0.0",
     "@types/chai": "^4.1.7",
     "@types/chalk": "^2.2.0",
@@ -85,13 +89,6 @@
     "@types/semver": "^5.5.0",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
-    "rollup": "^0.64.1",
-    "rollup-plugin-commonjs": "^9.1.5",
-    "rollup-plugin-json": "^3.0.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-tslint": "^0.1.35",
-    "rollup-plugin-typescript": "^1.0.0",
-    "rollup-watch": "^4.3.1",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0"
   }

@@ -6,9 +6,8 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "moduleResolution": "node",
         "experimentalDecorators": true,
-        "sourceMap": true,
+        "inlineSourceMap": true,
         "lib": [
             "es2015",
             "es2015.promise"
@@ -16,7 +15,9 @@
         "types": [
             "node"
         ],
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "outDir": "dist"
     },
     "include": [
         "src/**/*.ts",
