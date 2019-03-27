@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import * as path from 'path'
 import config  from '../config'
 import * as utils from '../utils'

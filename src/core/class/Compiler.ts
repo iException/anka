@@ -115,7 +115,7 @@ export default class Compiler {
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
             cwd: config.srcDir,
             nodir: true,
-            silent: false,
+            quiet: false,
             absolute: true,
             ignore: config.ankaConfig.ignored
         })

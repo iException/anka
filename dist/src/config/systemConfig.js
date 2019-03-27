@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var path = require("path");
+var ankaConfig_1 = require("./ankaConfig");
+exports.cwd = process.cwd();
+exports.srcDir = path.resolve(exports.cwd, ankaConfig_1.default.sourceDir);
+exports.distDir = path.resolve(exports.cwd, ankaConfig_1.default.outputDir);
+exports.ankaModules = path.resolve(exports.srcDir, 'anka_modules');
+exports.sourceNodeModules = path.resolve(exports.cwd, 'node_modules');
+exports.distNodeModules = path.resolve(exports.distDir, 'npm_modules');
+exports.defaultScaffold = 'iException/anka-quickstart';
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3lzdGVtQ29uZmlnLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vc3JjL2NvbmZpZy9zeXN0ZW1Db25maWcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQSwyQkFBNEI7QUFDNUIsMkNBQXFDO0FBRXhCLFFBQUEsR0FBRyxHQUFHLE9BQU8sQ0FBQyxHQUFHLEVBQUUsQ0FBQTtBQUNuQixRQUFBLE1BQU0sR0FBRyxJQUFJLENBQUMsT0FBTyxDQUFDLFdBQUcsRUFBRSxvQkFBVSxDQUFDLFNBQVMsQ0FBQyxDQUFBO0FBQ2hELFFBQUEsT0FBTyxHQUFHLElBQUksQ0FBQyxPQUFPLENBQUMsV0FBRyxFQUFFLG9CQUFVLENBQUMsU0FBUyxDQUFDLENBQUE7QUFDakQsUUFBQSxXQUFXLEdBQUcsSUFBSSxDQUFDLE9BQU8sQ0FBQyxjQUFNLEVBQUUsY0FBYyxDQUFDLENBQUE7QUFDbEQsUUFBQSxpQkFBaUIsR0FBRyxJQUFJLENBQUMsT0FBTyxDQUFDLFdBQUcsRUFBRSxjQUFjLENBQUMsQ0FBQTtBQUNyRCxRQUFBLGVBQWUsR0FBRyxJQUFJLENBQUMsT0FBTyxDQUFDLGVBQU8sRUFBRSxhQUFhLENBQUMsQ0FBQTtBQUN0RCxRQUFBLGVBQWUsR0FBSSw0QkFBNEIsQ0FBQSJ9

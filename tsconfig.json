@@ -13,23 +13,23 @@
             "es2015.promise"
         ],
         "types": [
-            "node"
+            "node",
+            "mocha",
+            "expect.js"
         ],
+        "baseUrl": "./",
+        "paths": {
+            "*": ["./types/*"]
+        },
         "resolveJsonModule": true,
         "moduleResolution": "node",
         "outDir": "dist"
     },
     "include": [
-        "src/**/*.ts",
-        "./package.json",
-        "./types/index.d.ts",
-        "./types/types.d.ts",
-        "./types/glob.d.ts",
-        "./types/modules.d.ts",
-        "./types/validate-npm-package-name.d.ts"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules",
-        "**/*.spec.ts"
+        "test"
     ]
 }
