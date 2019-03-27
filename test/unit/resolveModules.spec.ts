@@ -5,8 +5,8 @@ import {
 } from '../../src/utils'
 import * as path from 'path'
 
-describe('Utils', () => {
-    it('resolveModule', () => {
+describe('Utils:resolveModule', () => {
+    it('resolve npm module', () => {
         const module = resolveModule('typescript', {
             paths: [__dirname]
         })

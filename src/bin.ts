@@ -6,8 +6,6 @@ import * as cfonts from 'cfonts'
 import commands from './commands'
 import Compiler from './core/class/Compiler'
 
-import { CommandOpts } from '../types'
-
 const commander = require('commander')
 const pkgJson = require('../package.json')
 
