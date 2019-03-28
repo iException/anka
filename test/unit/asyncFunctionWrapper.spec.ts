@@ -4,13 +4,13 @@ import {
 import * as path from 'path'
 
 describe('Utils:asyncFunctionWrapper', () => {
-    it('resolve one parameter', done => {
+    it('one parameter', done => {
         const asycnFn = asyncFunctionWrapper(function (param: any, cb: any) {
             console.log(cb, param)
             setTimeout(cb, 10, param)
         })
-        asycnFn(1).then(val => {
-            expect(val).to.equal(1)
+        asycnFn(1).then((...val) => {
+            expect(val).toEqual([1])
             done()
         }).catch(err => console.error(err))
     })
@@ -19,8 +19,8 @@ describe('Utils:asyncFunctionWrapper', () => {
         const asycnFn = asyncFunctionWrapper(function (param: any, cb: any) {
             setTimeout(cb, 10, param)
         })
-        asycnFn(1, 2).then(val => {
-            expect(val).to.equal(1)
+        asycnFn(1, 2).then((...val) => {
+            expect(val).toEqual([1])
             done()
         }).catch(err => console.error(err))
     })
@@ -29,8 +29,8 @@ describe('Utils:asyncFunctionWrapper', () => {
         const asycnFn = asyncFunctionWrapper(function (param: any, cb: any) {
             setTimeout(cb, 10, param)
         })
-        asycnFn().then(val => {
-            expect(val).to.equal(undefined)
+        asycnFn().then((...val) => {
+            expect(val).toEqual([undefined])
             done()
         }).catch(err => console.error(err))
     })

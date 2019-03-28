@@ -68,7 +68,7 @@
     "@types/cssnano": "^4.0.0",
     "@types/del": "^3.0.1",
     "@types/ejs": "^2.6.0",
-    "@types/expect.js": "^0.3.29",
+    "@types/expect": "^1.20.4",
     "@types/fs-extra": "^5.0.4",
     "@types/glob": "^7.1.1",
     "@types/jsonminify": "^0.4.0",
@@ -80,7 +80,7 @@
     "@types/ora": "^1.3.4",
     "@types/replace-ext": "0.0.27",
     "@types/semver": "^5.5.0",
-    "expect.js": "^0.3.1",
+    "expect": "^24.5.0",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0"

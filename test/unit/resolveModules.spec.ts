@@ -10,6 +10,6 @@ describe('Utils:resolveModule', () => {
         const module = resolveModule('typescript', {
             paths: [__dirname]
         })
-        expect(module).to.equal(path.join(process.cwd(), 'node_modules/typescript/lib/typescript.js'))
+        expect(module).toEqual(path.join(process.cwd(), 'node_modules/typescript/lib/typescript.js'))
     })
 })

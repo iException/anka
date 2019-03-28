@@ -1,1 +1,1 @@
-(<any>global).expect = require('expect.js')
+(<any>global).expect = require('expect')

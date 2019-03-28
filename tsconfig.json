@@ -15,7 +15,7 @@
         "types": [
             "node",
             "mocha",
-            "expect.js"
+            "expect"
         ],
         "baseUrl": "./",
         "paths": {
