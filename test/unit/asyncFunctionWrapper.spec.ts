@@ -6,7 +6,6 @@ import * as path from 'path'
 describe('Utils:asyncFunctionWrapper', () => {
     it('one parameter', done => {
         const asycnFn = asyncFunctionWrapper(function (param: any, cb: any) {
-            console.log(cb, param)
             setTimeout(cb, 10, param)
         })
         asycnFn(1).then((...val) => {
