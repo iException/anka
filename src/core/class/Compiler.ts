@@ -97,7 +97,7 @@ export default class Compiler {
      */
     async clean (): Promise<void> {
         await del([
-            path.join(config.distDir, '**/*'),
+            path.join(config.distDir, '**', '*'),
             `!${path.join(config.distDir, 'app.js')}`,
             `!${path.join(config.distDir, 'app.json')}`,
             `!${path.join(config.distDir, 'project.config.json')}`

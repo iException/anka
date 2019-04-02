@@ -17,7 +17,7 @@ function taskCreator (len = 3) {
 }
 
 describe('Utils:callPromiseInChain', () => {
-    it('base', done => {
+    it('call promise in chain', done => {
         const params = [1, 2, 3]
 
         callPromiseInChain(taskCreator(3), params).then(() => {

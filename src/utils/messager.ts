@@ -1,23 +1,27 @@
 import logger from './logger'
 import ankaConfig from '../config/ankaConfig'
 
-export default {
-    errors: [],
-    messages: [],
-    push (msg: Object): void {
+export class Messager {
+    public errors: Array<Error> = []
+    public messages: Array<Error | string> = []
+
+    push (msg: Error | string): void {
         if (msg instanceof Error) {
             this.errors.push(msg)
         } else {
-            this.messages.push(msg)
+            this.messages.push(<string>msg)
         }
-    },
+    }
+
     clear (): void {
         this.errors = []
         this.messages = []
-    },
+    }
+
     hasError (): Boolean {
         return !!this.errors.length
-    },
+    }
+
     printError (): void {
         logger.stopLoading()
         console.clear()
@@ -28,7 +32,7 @@ export default {
             ankaConfig.debug && console.log(err.stack)
         })
         this.errors = []
-    },
+    }
     printInfo (): void {
         logger.stopLoading()
         this.messages.forEach((info: string) => {
@@ -38,3 +42,5 @@ export default {
         this.messages = []
     }
 }
+
+export default new Messager()
