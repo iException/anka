@@ -84,18 +84,18 @@
     "@types/semver": "^5.5.0",
     "codecov": "^3.2.0",
     "cross-env": "^5.2.0",
-    "expect": "^24.5.0",
+    "expect": "^24.6.0",
     "mocha": "^5.2.0",
     "nyc": "^13.3.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0"
   },
   "nyc": {
-		"report-dir": "./coverage",
-		"reporter": [
-			"lcov",
-			"text-summary"
-		],
+    "report-dir": "./coverage",
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ],
     "extension": [
       ".ts"
     ],
@@ -103,23 +103,23 @@
       "src/**/*.ts"
     ],
     "all": true,
-		"watermarks": {
-			"lines": [
-				70,
-				90
-			],
-			"functions": [
-				70,
-				90
-			],
-			"branches": [
-				70,
-				90
-			],
-			"statements": [
-				70,
-				90
-			]
-		}
-	}
+    "watermarks": {
+      "lines": [
+        70,
+        90
+      ],
+      "functions": [
+        70,
+        90
+      ],
+      "branches": [
+        70,
+        90
+      ],
+      "statements": [
+        70,
+        90
+      ]
+    }
+  }
 }
