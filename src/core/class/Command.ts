@@ -22,7 +22,15 @@ export default abstract class Command {
         this.on = {}
     }
 
-    abstract action (param: string | Array<string>, options: Object, ...other: any[]): Promise<any> | void
+    public async exec (...params: any[]): Promise<any> {
+        try {
+            await this.action(...params)
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    abstract action (...parms: any[]): Promise<any> | void
 
     /**
      * Initialize anka core compiler

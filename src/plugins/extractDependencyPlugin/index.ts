@@ -72,7 +72,7 @@ export default <Plugin> function (this: PluginInjection) {
                     }
                 }
             })
-            file.content = codeGenerator(file.ast, {
+            file.content = codeGenerator(<t.Node>file.ast, {
                 compact: !devMode,
                 minified: !devMode
             }).code

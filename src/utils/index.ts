@@ -1,5 +1,6 @@
 export * from './fs'
 export { default as logger } from './logger'
+export { default as messager } from './messager'
 export {
     createFile,
     createFileSync,

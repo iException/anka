@@ -1,4 +1,4 @@
-import downloadRepo from 'download-git-repo'
+import downloadRepo = require('download-git-repo')
 
 export default function (repo: string, path: string): Promise<void> {
     return new Promise((resolve, reject) => {

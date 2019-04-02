@@ -22,7 +22,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
         data: file.content
     }, (err: Error, result: any) => {
         if (err) {
-            utils.logger.error('Compile', err.message, err)
+            utils.logger.error('Compile', file.sourceFile, err)
             compilation.destroy()
         } else {
             file.content = result.css

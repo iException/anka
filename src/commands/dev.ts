@@ -2,8 +2,7 @@ import config  from '../config'
 import { logger } from '../utils'
 import { Command, Compiler } from '../core'
 import messager from '../utils/messager'
-
-export type DevCommandOpts = Object & {}
+import { CommandOpts } from '../../types'
 
 export default class DevCommand extends Command {
     constructor () {
@@ -21,7 +20,7 @@ export default class DevCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (pages?: Array<string>, options?: DevCommandOpts) {
+    async action (pages?: Array<string>, options?: CommandOpts.DevCommandOpts) {
         this.$compiler.config.ankaConfig.devMode = true
 
         this.initCompiler()

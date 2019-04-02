@@ -37,7 +37,7 @@ export default <Plugin>function (this: PluginInjection) {
                 file.ast = root.root.toResult()
                 cb()
             }, (err: Error) => {
-                logger.error('Error', err.message, err)
+                logger.error('Error', file.sourceFile, err)
                 compilation.destroy()
                 cb()
             })

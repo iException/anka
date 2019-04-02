@@ -25,6 +25,15 @@ export type logger = {
 
     success(title: string, msg: string): void
 }
+export type messager = {
+    errors: (Error | string)[]
+    messages: string[]
+    push (msg: Object): void
+    clear (): void
+    hasError (): Boolean
+    printError (): void,
+    printInfo (): void
+}
 export type FsEditor = {
     editor: MemFsEditor.Editor
 
@@ -56,6 +65,7 @@ export function searchFiles (scheme: string, options?: Glob.IOptions): Promise<s
 
 type utils = {
     logger: logger
+    messager: messager
     FsEditor: () => FsEditor
     readFile (sourceFilePath: string): Promise<Buffer>
     writeFile (targetFilePath: string, content: Content): Promise<undefined>

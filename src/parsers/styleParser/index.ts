@@ -6,8 +6,8 @@ import {
 } from '../../../types/types'
 import * as Postcss from 'postcss'
 import logger from '../../utils/logger'
-import postcssrc from 'postcss-load-config'
 
+const postcssrc = require('postcss-load-config')
 const postcss = require('postcss')
 const postcssConfig: any = {}
 const internalPlugins: Array<Postcss.AcceptedPlugin> = []
@@ -47,7 +47,7 @@ function exec (config: any, file: File, compilation: Compilation, cb: Function) 
         file.updateExt('.wxss')
         cb()
     }).catch((err: Error) => {
-        logger.error('Compile', err.message, err)
+        logger.error('Compile', file.sourceFile, err)
         compilation.destroy()
         cb()
     })

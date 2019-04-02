@@ -13,3 +13,12 @@ export default [
     new CreateComponent(),
     new EnrollComponent()
 ]
+
+export {
+    Prod,
+    Dev,
+    Init,
+    CreatePage,
+    CreateComponent,
+    EnrollComponent
+}

@@ -252,4 +252,25 @@ export class PluginInjection extends Injection {
 
 export type Utils = utils
 
-// export  utils = Utils
+export namespace CommandOpts {
+    export type CreateComponentCommandOpts = {
+        root: string
+    }
+
+    export type CreatePageCommandOpts = {
+        root: string
+    }
+
+    export type DevCommandOpts = Object
+
+    export type ProdCommandOpts = Object
+
+    export type EnrollComponentCommandOpts = {
+        page: string
+        global: string
+    }
+
+    export type InitCommandOpts = {
+        repo: string
+    }
+}

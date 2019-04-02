@@ -97,7 +97,7 @@ export default class Compiler {
      */
     async clean (): Promise<void> {
         await del([
-            path.join(config.distDir, '**/*'),
+            path.join(config.distDir, '**', '*'),
             `!${path.join(config.distDir, 'app.js')}`,
             `!${path.join(config.distDir, 'app.json')}`,
             `!${path.join(config.distDir, 'project.config.json')}`
@@ -115,7 +115,7 @@ export default class Compiler {
         const filePaths: string[] = await utils.searchFiles(`**/*`, {
             cwd: config.srcDir,
             nodir: true,
-            silent: false,
+            quiet: false,
             absolute: true,
             ignore: config.ankaConfig.ignored
         })

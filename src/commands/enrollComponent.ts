@@ -6,15 +6,11 @@ import { Command, Compiler } from '../core'
 import { default as FsEditorConstructor } from '../utils/editor'
 
 import {
+    CommandOpts,
     CompilerConfig
 } from '../../types/types'
 
 const { logger, FsEditor } = utils
-
-export type EnrollComponentCommandOpts = {
-    page: string
-    global: string
-}
 
 export default class EnrollComponentCommand extends Command {
     constructor () {
@@ -42,7 +38,7 @@ export default class EnrollComponentCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (components?: Array<string>, options?: EnrollComponentCommandOpts) {
+    async action (components?: Array<string>, options?: CommandOpts.EnrollComponentCommandOpts) {
         const {
             page,
             global

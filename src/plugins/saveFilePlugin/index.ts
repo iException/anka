@@ -43,7 +43,7 @@ export default <Plugin>function (this: PluginInjection) {
         }).then(() => {
             cb()
         }).catch((err: Error) => {
-            logger.error('Error', err.message, err)
+            logger.error('Error', file.sourceFile, err)
             compilation.destroy()
             cb()
         })

@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import * as path from 'path'
 import config  from '../config'
 import * as utils from '../utils'
@@ -6,14 +5,11 @@ import { Command, Compiler } from '../core'
 import { default as FsEditorConstructor } from '../utils/editor'
 
 import {
+    CommandOpts,
     CompilerConfig
 } from '../../types/types'
 
 const { logger, FsEditor } = utils
-
-export type CreatePageCommandOpts = {
-    root: string
-}
 
 export default class CreatePageCommand extends Command {
     constructor () {
@@ -36,7 +32,7 @@ export default class CreatePageCommand extends Command {
         this.$compiler = new Compiler()
     }
 
-    async action (pages?: Array<string>, options?: CreatePageCommandOpts) {
+    async action (pages?: Array<string>, options?: CommandOpts.CreatePageCommandOpts) {
         const root = options.root
         const editor = new FsEditor()
 

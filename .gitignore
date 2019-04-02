@@ -3,3 +3,5 @@
 .DS_Store
 package-lock.json
 yarn-error.log
+/coverage
+.nyc_output

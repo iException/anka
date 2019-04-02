@@ -12,6 +12,9 @@
 	<a href="https://gitter.im/anka-dev/community">
 		<img src="https://img.shields.io/gitter/room/iexception/anka.svg?style=flat"/>
 	</a>
+	<a href="https://codecov.io/gh/iException/anka">
+		<img src="https://codecov.io/gh/iException/anka/branch/dev/graph/badge.svg" />
+	</a>
 </p>
 
 > 渐进式小程序开发工具集。提供通用的开发函数库及组件，我们正努力使小程序开发过程变得愉快。
