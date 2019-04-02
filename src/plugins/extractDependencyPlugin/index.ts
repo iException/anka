@@ -30,7 +30,7 @@ export default <Plugin> function (this: PluginInjection) {
         if (file.extname === '.js') {
             // console.log(file.sourceFile, file.ast ? 'object' : file.ast)
             if (!file.ast) {
-                file.ast = <t.File>babel.parse(
+                file.ast = <t.Node>babel.parse(
                     file.content instanceof Buffer ? file.content.toString() : file.content,
                     {
                         babelrc: false,
@@ -39,7 +39,8 @@ export default <Plugin> function (this: PluginInjection) {
                 )
             }
 
-            traverse(<t.Node>file.ast, {
+            traverse(<babel.types.Node>file.ast, {
+                // tslint:disable-next-line:whitespace
                 enter (path) {
                     if (path.isImportDeclaration()) {
                         const node = path.node
@@ -72,7 +73,7 @@ export default <Plugin> function (this: PluginInjection) {
                     }
                 }
             })
-            file.content = codeGenerator(<t.Node>file.ast, {
+            file.content = codeGenerator(<babel.types.Node>file.ast, {
                 compact: !devMode,
                 minified: !devMode
             }).code

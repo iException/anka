@@ -1,3 +1,4 @@
+import * as t from '@babel/types'
 import * as babel from '@babel/core'
 import File from '../core/class/File'
 
@@ -38,7 +39,7 @@ export default <Parser>function (this: ParserInjection, file: File, compilation:
 
             file.sourceMap = JSON.stringify(result.map)
             file.content = result.code
-            file.ast = result.ast
+            file.ast = <t.Node>result.ast
         } catch (err) {
             compilation.destroy()
             utils.logger.error('Compile', file.sourceFile, err)
