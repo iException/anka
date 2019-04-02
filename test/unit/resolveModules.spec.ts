@@ -4,6 +4,7 @@ import {
     resolveModule,
 } from '../../src/utils'
 import * as path from 'path'
+import expect = require('expect')
 
 describe('Utils:resolveModule', () => {
     it('resolve npm module', () => {

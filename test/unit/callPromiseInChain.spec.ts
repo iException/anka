@@ -4,6 +4,7 @@ import {
     callPromiseInChain,
 } from '../../src/utils'
 import * as path from 'path'
+import expect = require('expect')
 
 function taskCreator (len = 3) {
     return new Array(len).fill(null).map(() => {
