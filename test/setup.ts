@@ -1,1 +1,1 @@
-(<any>global).expect = require('expect')
+// (<any>global).expect = require('expect')
