@@ -97,11 +97,10 @@
 			"text-summary"
 		],
     "extension": [
-      ".ts",
-      ".tsx"
+      ".ts"
     ],
-    "exclude": [
-      "**/*.d.ts"
+    "include": [
+      "src/**/*.ts"
     ],
     "all": true,
 		"watermarks": {
