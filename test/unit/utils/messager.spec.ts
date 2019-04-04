@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { Messager } from '../../src/utils/messager'
+import { Messager } from '../../../src/utils/messager'
 import expect = require('expect')
 
 describe('Utils:messager', () => {
