@@ -2,7 +2,7 @@ import {
     logger,
     messager,
     resolveModule,
-} from '../../src/utils'
+} from '../../../src/utils'
 import * as path from 'path'
 import expect = require('expect')
 
