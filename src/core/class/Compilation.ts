@@ -13,6 +13,7 @@ import {
 } from '../../../types/types'
 import messager from '../../utils/messager'
 import { logger } from '../../utils'
+import { file } from '@babel/types';
 
 /**
  * A compilation task

@@ -107,7 +107,7 @@ export default <Plugin> function (this: PluginInjection) {
 
             const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
 
-            node.value = path.relative(targetBaseName, distPath)
+            node.value = path.relative(targetBaseName, distPath).split(path.sep).join('/')
 
             if (localDependencyPool.has(dependency)) return
             localDependencyPool.set(dependency, dependency)

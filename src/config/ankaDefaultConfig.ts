@@ -25,39 +25,39 @@ import {
  * The path where WeChat miniprogram source files exist.
  * @default './src'
  */
-export const sourceDir = './src'
+export const sourceDir = path.join('.', 'src')
 
 /**
  * The path where WeChat miniprogram compiled files exist.
  * @default './dist'
  */
-export const outputDir = './dist'
+export const outputDir = path.join('.', 'dist')
 
 /**
  * The path where WeChat miniprogram pages exist.
  * @default './src/pages'
  */
-export const pages = './pages'
+export const pages = path.join('.', 'pages')
 
 /**
  * The path where WeChat miniprogram components exist.
  * @default './src/components'
  */
-export const components = './components'
+export const components = path.join('.', 'components')
 
 /**
  * Template for creating page and component.
  */
 export const template = {
-    page: path.join(__dirname, '../template/page'),
-    component: path.join(__dirname, '../template/component')
+    page: path.join(__dirname, '..', 'template', 'page'),
+    component: path.join(__dirname, '..', 'template', 'component')
 }
 
 /**
  * The path where WeChat miniprogram subpackages exist.
  * @default './src/subPackages'
  */
-export const subPackages = './subPackages'
+export const subPackages = path.join('.', 'subPackages')
 
 /*****************************************************
  *                 Custom configure

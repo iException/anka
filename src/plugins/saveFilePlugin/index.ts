@@ -1,3 +1,4 @@
+import * as path from 'path'
 import * as fs from 'fs-extra'
 import {
     Plugin,
@@ -6,7 +7,6 @@ import {
     PluginInjection
 } from '../../../types/types'
 const minifyJSON = require('jsonminify')
-
 const inlineSourceMapComment = require('inline-source-map-comment')
 
 export default <Plugin>function (this: PluginInjection) {
@@ -16,6 +16,7 @@ export default <Plugin>function (this: PluginInjection) {
         logger,
         writeFile
     } = utils
+    const replaceRegExp = /\//g
 
     this.on('save', <PluginHandler>function (compilation: Compilation, cb: Function) {
         const file = compilation.file
@@ -41,6 +42,7 @@ export default <Plugin>function (this: PluginInjection) {
             }
             return writeFile(file.targetFile, file.content)
         }).then(() => {
+            config.ankaConfig.debug && utils.logger.info('Save', file.targetFile)
             cb()
         }).catch((err: Error) => {
             logger.error('Error', file.sourceFile, err)

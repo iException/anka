@@ -25,7 +25,7 @@ export default class File {
         if (!option.content) throw new Error('Invalid value: FileConstructorOption.content')
 
         this.sourceFile = option.sourceFile
-        this.targetFile = option.targetFile || option.sourceFile.replace(config.srcDir, config.distDir) // Default value
+        this.targetFile = option.targetFile || path.resolve(option.sourceFile).replace(config.srcDir, config.distDir) // Default value
         this.content = option.content
         this.sourceMap = option.sourceMap
         this.isInSrcDir = isInSrcDirTest.test(this.sourceFile)
