@@ -19,9 +19,9 @@
 
 > 渐进式小程序开发工具集。提供通用的开发函数库及组件，我们正努力使小程序开发过程变得愉快。
 
-# 如何使用
+## 如何使用
 
-## 安装CLI
+### 安装CLI
 
 AnkaCLI 能在原生小程序语法之上提供 npm 包支持、管理页面与组件、在 Parser 的加持下还能在小程序项目中使用 Sass、PostCSS、TypeScript。甚至，你能通过编写插件实现一些特殊功能，关于如何编写插件请看[这里](https://iexception.github.io/anka-doc/book/plugins/)。
 
@@ -31,19 +31,19 @@ AnkaCLI 能在原生小程序语法之上提供 npm 包支持、管理页面与�
 $ npm install @anka-dev/cli -g
 ```
 
-## 关联文档
+### 关联文档
 
 - [如何使用 AnkaCLI](https://iexception.github.io/anka-doc/book/cli)
 - [功能示例及项目模板](https://github.com/iException/anka-quickstart)
 
-# 你可能需要的
+## 你可能需要的
 
 - [anka-brush](https://github.com/iException/anka-brush) —— 小程序 Canvas 操作
 - [anka-tracker](https://github.com/iException/anka-tracker) ——  小程序打点库
 - [更多工具](https://github.com/iException?utf8=%E2%9C%93&q=anka&type=&language=)
 
 
-# 问题
+## 问题
 
 #### Anka 是小程序开发框架吗？
 
@@ -59,12 +59,12 @@ Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根
 
 ***
 
-# 问题反馈及建议
+## 问题反馈及建议
 
 我们非常乐意看见你将使用过程中遇见的缺陷[反馈到 issue 区](https://github.com/iException/anka/issues)。也任何新的想法或需求也可以通过相同方式提出并列入讨论。
 
 > Have a nice day 🎉 ！
 
-# LICENSE
+## LICENSE
 
 [MIT](./LICENSE)
