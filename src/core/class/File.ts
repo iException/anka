@@ -9,6 +9,7 @@ import {
 } from '../../../types/types'
 
 const replaceExt = require('replace-ext')
+const normalize = require('normalize-path')
 
 export default class File {
     public sourceFile: string
@@ -25,7 +26,7 @@ export default class File {
         if (!option.content) throw new Error('Invalid value: FileConstructorOption.content')
 
         this.sourceFile = option.sourceFile
-        this.targetFile = option.targetFile || option.sourceFile.replace(config.srcDir, config.distDir) // Default value
+        this.targetFile = option.targetFile || normalize(path.resolve(option.sourceFile)).replace(config.srcDir, config.distDir) // Default value
         this.content = option.content
         this.sourceMap = option.sourceMap
         this.isInSrcDir = isInSrcDirTest.test(this.sourceFile)
@@ -52,7 +53,7 @@ export default class File {
     }
 
     updateExt (ext: string): void {
-        this.targetFile = replaceExt(this.targetFile, ext)
+        this.targetFile = normalize(replaceExt(this.targetFile, ext))
     }
 
     convertContentToString () {

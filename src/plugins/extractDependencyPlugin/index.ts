@@ -11,6 +11,7 @@ import {
     PluginInjection
 } from '../../../types/types'
 
+const normalize = require('normalize-path')
 const dependencyPool = new Map<string, string>()
 const resovleModuleName = require('require-package-name')
 
@@ -107,7 +108,7 @@ export default <Plugin> function (this: PluginInjection) {
 
             const distPath = dependency.replace(config.sourceNodeModules, config.distNodeModules)
 
-            node.value = path.relative(targetBaseName, distPath)
+            node.value = normalize(path.relative(targetBaseName, distPath))
 
             if (localDependencyPool.has(dependency)) return
             localDependencyPool.set(dependency, dependency)

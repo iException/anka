@@ -11,6 +11,7 @@ const pkgJson = require('../package.json')
 
 require('source-map-support').install()
 
+
 if (!semver.satisfies(semver.clean(process.version), pkgJson.engines.node)) {
     logger.error('Required node version ' + pkgJson.engines.node)
     process.exit(1)
