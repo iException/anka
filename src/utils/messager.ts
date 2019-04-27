@@ -24,7 +24,7 @@ export class Messager {
 
     printError (): void {
         logger.stopLoading()
-        // console.clear()
+        console.clear()
         logger.error(`>>> ${this.errors.length} errors occurred`)
         console.log(this.errors.pop().message)
         this.errors.forEach((err: Error) => {

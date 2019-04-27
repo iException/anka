@@ -45,13 +45,13 @@ export class Logger {
 
     warn (title: string = '', msg: string = '') {
         this.stopLoading()
-        // console.clear()
+        console.clear()
         this.log(chalk.hex('#333333').bgYellowBright(` ${title.trim()} `), chalk.grey(msg))
     }
 
     success (title: string = '', msg: string = '') {
         this.stopLoading()
-        // console.clear()
+        console.clear()
         this.log(chalk.hex('#333333').bgGreenBright(` ${title.trim()} `), chalk.grey(msg))
     }
 }
