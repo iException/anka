@@ -16,7 +16,6 @@ export default <Plugin>function (this: PluginInjection) {
         logger,
         writeFile
     } = utils
-    const replaceRegExp = /\//g
 
     this.on('save', <PluginHandler>function (compilation: Compilation, cb: Function) {
         const file = compilation.file
