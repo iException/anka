@@ -45,17 +45,17 @@ $ npm install @anka-dev/cli -g
 
 ## 问题
 
-#### Anka 是小程序开发框架吗？
+#### 1. Anka 是小程序开发框架吗？
 
-Anka 是小程序开发**工具集**，AnkaCLI 是其中之一。我们可以根据实际需求引入 Anka 集合内的工具，比如 [Canvas库 anka-brush](https://github.com/iException/anka-brush)、[打点工具 anka-tracker](https://github.com/iException/anka-tracker)。
+Anka 是小程序开发**工具集**，用于加速原生小程序开发，AnkaCLI 是其中之一。我们可以根据实际需求引入 Anka 集合内的工具，比如 [Canvas库 anka-brush](https://github.com/iException/anka-brush)、[小程序/小游戏打点工具 anka-tracker](https://github.com/iException/anka-tracker)。
 
 不同于 mpvue、wepy 和 Taro，Anka 不提供任何特殊的小程序开发语法，在保持原生状态的条件下引入所需的工具。当然，通过编写[插件](https://iexception.github.io/anka-doc/book/plugins/)和[解析器](https://iexception.github.io/anka-doc/book/parsers/)也能实现特殊功能。
 
 关于 AnkaCLI 如何工作请看[这里](https://iexception.github.io/anka-doc/book/cli/how-cli-works.html)。
 
-#### 可以不安装 CLI 而单独使用其他工具吗？
+#### 2. 可以不安装 CLI 而单独使用其他工具吗？
 
-完全可以。Anka 集合下的工具都能单独使用，他们之间没有任何依赖（如果有则会特别指出）。
+完全可以。Anka 集合下的工具都能单独使用，他们之间没有任何依赖（如果有则会特别指出）。后续我们会开发更多的工具和插件。
 
 ***
 
