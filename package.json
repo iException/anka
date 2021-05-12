@@ -51,7 +51,7 @@
     "normalize-path": "^3.0.0",
     "npm": "^6.4.1",
     "ora": "^3.0.0",
-    "postcss": "^7.0.2",
+    "postcss": "^8.2.10",
     "postcss-load-config": "^2.0.0",
     "postcss-normalize-whitespace": "^4.0.1",
     "replace-ext": "^1.0.0",
